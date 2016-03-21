@@ -1,0 +1,12 @@
+#PBS -S /bin/sh
+
+if [ ! "$command" ]
+    then
+	    echo -e "Error: script must be supplied with a command"
+	    exit 1
+	else
+    	echo "$command"
+	    eval "$command"
+fi
+sleep 20
+exit 0

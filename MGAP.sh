@@ -23,17 +23,6 @@ This draft assembly is then scaffolded and draft contigs are stiched together if
 _EOF_
 }
 
-
-#TODO
-#include help
-
-
-help()
-{
-
-
-}
-
 #Define path to SPANDx install
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 

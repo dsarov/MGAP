@@ -1,0 +1,1 @@
+lib200 bwa SRR001665_1.fastq SRR001665_2.fastq 214 0.25 FR

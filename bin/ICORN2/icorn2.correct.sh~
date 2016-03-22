@@ -1,0 +1,25 @@
+#!/bin/bash
+
+### will call the correction bit of icorn2
+
+dir=$1
+readRoot=$2
+fragmentSize=$3
+resultname=$4
+
+## first set the variables
+ICORN_HOME=/nfs/pathogen003/tdo/Tools/ICORN.SNP; export ICORN_HOME    
+SNPOMATIC_HOME=$ICORN_HOME; export SNPOMATIC_HOME    
+PERL5LIB=/nfs/pathogen003/tdo/Tools/ICORN.SNP:$PERL5LIB; export PERL5LIB 
+
+cd $dir
+
+echo perl $ICORN_HOME/icorn2.Correct.pl ref.fa gatk_variants.variants.vcf ../$readRoot $fragmentSize $resultname	
+perl $ICORN_HOME/icorn2.Correct.pl ref.fa gatk_variants.variants.vcf ../$readRoot $fragmentSize $resultname
+	
+/nfs/users/nfs_t/tdo/Bin/bam.correctLineLength.sh $resultname
+
+echo cp $resultname ../
+
+cp $resultname ../
+cd ..

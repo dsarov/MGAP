@@ -126,16 +126,27 @@ if [ "$ref_blank_lines" != 0 ]; then
 	    echo -e "FASTA file looks to contain no blank lines. Good.\n"
 fi
 
-bwa_test=`command -v "$BWA"`
 
-java_test=`command -v "$JAVA"`
+VELVETG_TEST=`command -v "$VELVETH"`
+JAVA_TEST=`command -v "$JAVA"`
+SHUFFLE_TEST=
+ABACAS=
+VELVETG=
+TRIM=
+VELVETOPT=
+IMAGE=
+ICORN2_HOME=
+SSPACE=
+PAGIT_HOME=
 
-if [ -z "$bwa_test" ]; then
+
+
+if [ -z "$VELVET_TEST" ]; then
 	    echo "ERROR: SPANDx requires BWA to function. Please make sure the correct path is specified in SPANDx.config or the executable is in your PATH"
 		exit 1
 fi
 
-if [ -z "$java_test" ]; then
+if [ -z "$JAVA_TEST" ]; then
 	    echo "ERROR: MGAP requires java. Please make sure java is available on your system. The PATH to java can be modified in the MGAP.config file"
 		exit 1
 fi

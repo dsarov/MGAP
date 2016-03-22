@@ -16,14 +16,27 @@ cat << _EOF_
 Thanks for using MGAP
 The microbial genome assembler is an automated assmbly pipeline for paired end Illumina data
 The MGAP pipeline workflow is as follows:
-FastQ data is first conservatively filtered with Trimmomatic, next a draft assembly is constructed using Velvet with parameters optimised using velvet optimiser.
-This draft assembly is then scaffolded and draft contigs are stiched together if possible using ABACAS and IMAGE.
 
+Data Filtering:
+FastQ data is first conservatively filtered with Trimmomatic to remove adapter contamination and very low quality base calls.
+
+Initial Assembly Draft:
+A draft assembly is constructed using Velvet with parameters optimised using velvet optimiser.
+
+Assembly Improvement and Error Correction
+Scaffolds created with Velvet are first attempted to be filled using Gapfiller.
+Next the draft contigs are ordered against a reference genome using ABACAS.
+The scaffolded and ordered contigs are stiched together if possible using IMAGE.
+SSPACE is then run over the assembly to determine if any further joins can be made between the contigs
+Gapfiller is then used to fill in the joins created with SSPACE
+Finally ICORN is run in an attempt to fix any indels or SNP errors introduced during the assembly process
+
+Optionally contigs less than 1kb are removed from the final assembly using mira_convert
 
 _EOF_
 }
 
-#Define path to SPANDx install
+#Define path to MGAP install
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 if  [ $# -lt 1 ]
@@ -33,8 +46,8 @@ if  [ $# -lt 1 ]
 fi
 
 # source dependencies
-source "$SCRIPTPATH"/SPANDx.config 
-source "$SCRIPTPATH"/qsub.config
+source "$SCRIPTPATH"/MGAP.config 
+source "$SCRIPTPATH"/scheduler.config
 
 #declare variables
 declare -rx SCRIPT=${0##*/}

@@ -1,24 +1,16 @@
 #!/bin/bash
 
-#include script to assemble ABACAS genome for referenceperl $PAGIT_HOME/ABACAS/joinMultifasta.pl 
-#perl $PAGIT_HOME/ABACAS/splitABACASunion.pl Refsequence.fasta
 
-#Refsequence.union.fasta myPrefix.fasta myPrefix.crunch myPrefix.tab
 
-###TODO
-#creat non hard coded paths 
-
-source "$SCRIPTPATH"/SPANDx.config
+source "$SCRIPTPATH"/MGAP.config
 source "$SCRIPTPATH"/velvet_optimiser.config
-source /home/dsarovich/.bashrc
-source "$SCRIPTPATH"/qsub.config
-PERL5LIB=/home/dsarovich/perl5/lib/perl5:$PERL5LIB
-
-##ICORN2 config
+source "$SCRIPTPATH"/scheduler.config
 
 ICORN2_THREADS=$NCPUS
 
-if [ ! $PBS_O_WORKDIR ]
+
+# sets the variable PBS_O_WORKDIR for non PBS systems
+if [ ! $PBS_O_WORKDIR ] 
     then
         PBS_O_WORKDIR="$seq_path"
 fi
@@ -26,8 +18,9 @@ fi
 cd $PBS_O_WORKDIR
 
 
+# function for running a command an testing for success
 
-log_eval()
+log_eval() 
 {
   cd $1
   echo -e "\nIn $1\n"
@@ -48,23 +41,22 @@ if [ ! -d $PBS_O_WORKDIR/tmp/${seq} ]; then
     mkdir $PBS_O_WORKDIR/tmp/${seq}
 fi
 
-#TODO include this in SPANDX main script to avoid multiple instances
-#create ABACAS ref
 
 ##########################################################################
 ###                                                                    ###
 ###                           ABACAS REF                               ###
 ###                                                                    ###
 ##########################################################################
-contig_count=`grep -c '>' ${ref}.fasta`
+if [ $ref != "none" ]; then
+    contig_count=`grep -c '>' ${ref}.fasta`
 
-if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
-  log_eval $PBS_O_WORKDIR "perl $PAGIT_HOME/ABACAS/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
+    if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
+      log_eval $PBS_O_WORKDIR "perl $PAGIT_HOME/ABACAS/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
+    fi
+    if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count == 1 ]; then
+       ln -s $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta
+    fi
 fi
-if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count == 1 ]; then
-    ln -s $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta
-fi
-#TO DO filter reads for quality and adapters trimmomatic?
 
 ##########################################################################
 ###                                                                    ###

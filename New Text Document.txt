@@ -1,0 +1,14 @@
+
+
+
+MGAP Requirements
+
+Velvet and velvetoptimiser
+bioperl
+
+Trimmomatic
+Gapfiller
+SSPACE
+ABACAS
+IMAGE
+ICORN

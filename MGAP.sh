@@ -1,11 +1,5 @@
 #!/bin/bash
 
-
-
-Thanks for using MGAP!!
-
-
-
 usage()
 {
 echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain>"
@@ -53,20 +47,28 @@ source "$SCRIPTPATH"/scheduler.config
 #declare variables
 declare -rx SCRIPT=${0##*/}
 
-echo "scriptpath = $SCRIPTPATH"
+OPTSTRING="hr:s:"
 
-OPTSTRING="h:r:s:"
+
 
 declare SWITCH
-ref=no
+
+#default behaviour options
+ref=none
 org=haploid
 seq_directory="$PWD"
 assemble=yes
+pairing=PE
+strain=all
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do 
 		case $SWITCH in
 		
+		h) usage
+		   exit 1
+		   ;;
+		   
 		r) ref="$OPTARG"
 		   echo "Reference = $ref"
 		   ;;
@@ -79,15 +81,10 @@ while getopts "$OPTSTRING" SWITCH; do
 		    exit 1
 		    ;;
 		
-		h) usage
-		   exit 1
-		   ;;
-		   
 		*) echo "script error: unhandled argument"
            exit 1
 		   usage
-		   ;;
-		   
+		   ;; 
 		
 	esac
 done
@@ -127,7 +124,8 @@ if [ "$ref_blank_lines" != 0 ]; then
 fi
 
 
-VELVETG_TEST=`command -v "$VELVETH"`
+VELVETG_TEST=`command -v "$VELVETG"`
+VELVETH_TEST=`command -v "$VELVETH"`
 JAVA_TEST=`command -v "$JAVA"`
 SHUFFLE_TEST=
 ABACAS=
@@ -141,11 +139,17 @@ PAGIT_HOME=
 
 
 
-if [ -z "$VELVET_TEST" ]; then
-	    echo "ERROR: SPANDx requires BWA to function. Please make sure the correct path is specified in SPANDx.config or the executable is in your PATH"
+
+if [ -z "$VELVETG_TEST" ]; then
+	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config or the executable is in your PATH\n"
+		echo "MGAP is attempting to find velvetg here: $VELVETG"
 		exit 1
 fi
-
+if [ -z "$VELVETH_TEST" ]; then
+	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config or the executable is in your PATH\n"
+		echo "MGAP is attempting to find velvetg here: $VELVETH"
+		exit 1
+fi
 if [ -z "$JAVA_TEST" ]; then
 	    echo "ERROR: MGAP requires java. Please make sure java is available on your system. The PATH to java can be modified in the MGAP.config file"
 		exit 1
@@ -163,7 +167,7 @@ if [ "$strain" == all ]; then
     	echo -e "and STRAIN_1_sequence.fastq.gz for single end data\n"
 	    exit 1
     else
-        echo -e "Sequences have been loaded into SPANDx\n"
+        echo -e "Sequences have been loaded into MGAP\n"
     fi
 fi
 
@@ -186,35 +190,8 @@ if [ "$pairing" == PE -a "$strain" == all ]; then
     done;
 fi
 
-if [ "$strain" != all -a "$strain" != none ]; then
-    sequences="$strain"
-	echo -e "SPANDx will process the single strain $strain.\n"
-	if [ "$matrix" == yes ]; then
-	    matrix=no
-		echo -e "SPANDx will not run SNP matrix with only one strain specified. If a SNP matrix is desired please run SPANDx with more strains or if strains have already been run link the SNP VCF and BAM files to the appropriate directories and set -s to none.\n"
-	fi
-	if [ "$pairing" == PE ]; then
-	    if [ ! -s ${strain}_1_sequence.fastq.gz ]; then
-		    echo -e "ERROR: SPANDx cannot find sequence file ${strain}_1_sequence.fastq.gz\n"
-			echo -e "Please make sure the correct sequence reads are in the sequence directory\n"
-			exit 1
-        fi
-		if [ ! -s ${strain}_2_sequence.fastq.gz ]; then
-		    echo -e "ERROR: SPANDx cannot find sequence file ${strain}_2_sequence.fastq.gz\n"
-			echo -e "Please make sure the correct sequence reads are in the sequence directory\n"
-			exit 1
-        fi
-	fi
-	if [ "$pairing" == SE ]; then
-		if [ ! -s ${strain}_1_sequence.fastq.gz ]; then
-		    echo -e "ERROR: SPANDx cannot find sequence file ${strain}_1_sequence.fastq.gz\n"
-			echo -e "Please make sure the correct sequence reads are in the sequence directory\n"
-			exit 1
-        fi
-	fi
-fi	
-	
-	
+#create directory structure
+
 if [ ! -d "tmp" ]; then
 	mkdir $seq_directory/tmp
 fi

@@ -6,7 +6,7 @@ MGAP is an automated pipeline for high-quality, reference-assisted assembly of  
 
 MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used for single-end data, or for platforms other than Illumina.
 
-MGAP incorporates several programs into its workflow. First, FASTQ reads are conservatively trimmed and filtered using Trimmomatic v0.35 (Bolger AM et al., 2014) to remove low-quality bases and Illumina adapter contamination. The Trimmomatic parameters in MGAP are, by default, set to the following: LEADING=3, TRAILING=3, SLIDINGWINDOW=4:15, MINLEN=36, and ILLUMINACLIP for TruSeq2 paired-end adapters. These parameters can be altered as desired. 
+MGAP incorporates several programs into its workflow. First, FASTQ reads are conservatively trimmed and filtered using Trimmomatic v0.35 (Bolger AM et al., 2014) to remove low-quality bases and Illumina adapter contamination. The Trimmomatic parameters in MGAP are: LEADING=3, TRAILING=3, SLIDINGWINDOW=4:15, MINLEN=36, and ILLUMINACLIP (for TruSeq2 paired-end adapters). These parameters can be altered as desired. 
 
 Next, a draft scaffold assembly is  created using Velvet 1.2.10 (Zerbino DR & Birney E, 2008), with parameters optimised using VelvetOptimiser v2.2.4 (https://github.com/tseemann/VelvetOptimiser) at a default kmer range of 53 to 75; these kmers can also be altered if required. 
 

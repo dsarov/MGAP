@@ -4,7 +4,7 @@ MGAP is an automated pipeline that incorporates several genome assembly programs
 
 <i>MGAP workflow</i>
 
-MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used for single-end data, or for platforms other than Illumina.
+MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
 - Trimmomatic

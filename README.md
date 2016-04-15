@@ -1,6 +1,6 @@
 # Microbial Genome Assembler Pipeline (MGAP)
 
-MGAP is an automated pipeline that incorporates several existing genome assembly tools for high-quality, reference-assisted assembly of  microbial genomes using paired-end Illumina data.
+MGAP is an automated pipeline that incorporates several genome assembly tools for high-quality, reference-assisted assembly of  microbial genomes using paired-end Illumina data.
 
 <i>MGAP workflow</i>
 

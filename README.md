@@ -13,15 +13,15 @@ MGAP currently only works with the PBS (Torque) resource manager.
 MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
-- Trimmomatic
-- Velvet
-- VelvetOptimiser
-- GapFiller
-- ABACAS
-- IMAGE
-- SSPACE
-- ICORN2
-- MIRA
+- Trimmomatic (Bolger AM et al., 2014)
+- Velvet (Zerbino DR & Birney E, 2008)
+- VelvetOptimiser (https://github.com/tseemann/VelvetOptimiser)
+- GapFiller (Boetzer M & Pirovano W, 2012)
+- ABACAS (Assefa S et al., 2009)
+- IMAGE (Tsai IJ et al., 2010)
+- SSPACE (Boetzer M et al., 2011)
+- ICORN2 (Otto TD et al., 2010)
+- MIRA (Chevreux B et al., 1999)
 
 <i>How do I run MGAP?</i>
 
@@ -31,13 +31,13 @@ MGAP expects reads to be paired-end Illumina data in the following format: STRAI
 
 <i>What does MGAP do?</i>
 
-Prior to assembly, FASTQ reads are conservatively trimmed and filtered using Trimmomatic v0.35 (Bolger AM et al., 2014) to remove low-quality bases and Illumina adapter contamination. The Trimmomatic parameters in MGAP are: LEADING=3, TRAILING=3, SLIDINGWINDOW=4:15, MINLEN=36, and ILLUMINACLIP (for TruSeq2 paired-end adapters). These parameters can be altered as desired. 
+Prior to assembly, FASTQ reads are conservatively trimmed and filtered using Trimmomatic v0.35 to remove low-quality bases and Illumina adapter contamination. The Trimmomatic parameters in MGAP are: LEADING=3, TRAILING=3, SLIDINGWINDOW=4:15, MINLEN=36, and ILLUMINACLIP (for TruSeq2 paired-end adapters). These parameters can be altered as desired. 
 
-Next, a draft scaffold assembly is  created using Velvet 1.2.10 (Zerbino DR & Birney E, 2008), with parameters optimised using VelvetOptimiser v2.2.4 (https://github.com/tseemann/VelvetOptimiser) at a default kmer range of 53 to 75; these kmers can also be altered if required. 
+Next, a draft scaffold assembly is  created using Velvet 1.2.10, with parameters optimised using VelvetOptimiser v2.2.4 at a default kmer range of 53 to 75; these kmers can also be altered if required. 
 
-GapFiller v2.1.1 (Boetzer M & Pirovano W, 2012) is then used to attempt to fill in the scaffolds created by Velvet. Following creation of the draft Velvet assemblies, the best assembly is then improved upon using ABACAS v1.3.1 (Assefa S et al., 2009) and IMAGE v2.4.1 (Tsai IJ et al., 2010). If the user provides a reference genome, ABACAS scaffolds the contigs against this reference. If no user-specified reference is provided, this ABACAS step is skipped. Scaffolded contigs are then attempted to be joined using IMAGE, which will break contigs that have been incorrectly joined. A second attempt is then made to scaffold contigs using SSPACE v3.0 (Boetzer M et al., 2011). GapFiller is then run again to attempt to fill in the scaffolds created by SSPACE. 
+GapFiller v2.1.1 is then used to attempt to fill in the scaffolds created by Velvet. Following creation of the draft Velvet assemblies, the best assembly is then improved upon using ABACAS v1.3.1 and IMAGE v2.4.1. If the user provides a reference genome, ABACAS scaffolds the contigs against this reference. If no user-specified reference is provided, this ABACAS step is skipped. Scaffolded contigs are then attempted to be joined using IMAGE, which will break contigs that have been incorrectly joined. A second attempt is then made to scaffold contigs using SSPACE v3.0. GapFiller is then run again to attempt to fill in the scaffolds created by SSPACE. 
 
-Finally, ICORN2 v0.95 (Otto TD et al., 2010) corrects any insertion-deletion (indel) and SNP errors in the final assembly. Contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA4 (Chevreux B et al., 1999). 
+Finally, ICORN2 v0.95 corrects any insertion-deletion (indel) and SNP errors in the final assembly. Contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA v4. 
 
 <i>Who created MGAP?</i>
 

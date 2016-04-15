@@ -10,7 +10,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - Trimmomatic
 - Velvet
 - VelvetOptimiser
-- Gapfiller
+- GapFiller
 - ABACAS
 - IMAGE
 - SSPACE

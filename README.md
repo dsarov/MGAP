@@ -13,15 +13,15 @@ MGAP currently only works with the PBS (Torque) resource manager.
 MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
-- Trimmomatic (Bolger AM et al., 2014)
-- Velvet (Zerbino DR & Birney E, 2008)
-- VelvetOptimiser (https://github.com/tseemann/VelvetOptimiser)
-- GapFiller (Boetzer M & Pirovano W, 2012)
-- ABACAS (Assefa S et al., 2009)
-- IMAGE (Tsai IJ et al., 2010)
-- SSPACE (Boetzer M et al., 2011)
-- ICORN2 (Otto TD et al., 2010)
-- MIRA (Chevreux B et al., 1999)
+- <b>Trimmomatic<b/> (Bolger AM et al., 2014)
+- <b>Velvet<b/> (Zerbino DR & Birney E, 2008)
+- <b>VelvetOptimiser<b/> (https://github.com/tseemann/VelvetOptimiser)
+- <b>GapFiller<b/> (Boetzer M & Pirovano W, 2012)
+- <b>ABACAS<b/> (Assefa S et al., 2009)
+- <b>IMAGE<b/> (Tsai IJ et al., 2010)
+- <b>SSPACE<b/> (Boetzer M et al., 2011)
+- <b>ICORN2<b/> (Otto TD et al., 2010)
+- <b>MIRA<b/> (Chevreux B et al., 1999)
 
 <i>How do I run MGAP?</i>
 

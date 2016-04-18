@@ -21,7 +21,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>IMAGE</b> (Tsai IJ et al., 2010)
 - <b>SSPACE</b> (Boetzer M et al., 2011)
 - <b>ICORN2</b> (Otto TD et al., 2010)
-- <b>MIRA</b> (Chevreux B et al., 1999)
+- <b>MIRA (convert_project)</b> (Chevreux B et al., 1999)
 
 <i>How do I run MGAP?</i>
 

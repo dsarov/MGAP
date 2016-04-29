@@ -66,6 +66,7 @@ while getopts "$OPTSTRING" SWITCH; do
 		case $SWITCH in
 		
 		h) usage
+                   help 
 		   exit 1
 		   ;;
 		   

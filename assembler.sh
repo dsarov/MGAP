@@ -78,25 +78,7 @@ if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_merged.fastq.gz -a ! -s ${PBS_O_WORKD
   log_eval $PBS_O_WORKDIR/tmp/${seq} "gzip ${seq}_merged.fastq" #trim specific for velvet
   echo -e "Illumina sequences have been merged for Velvet assembly\n\n"
 fi
-##########################################################################
-###                                                                    ###
-###                          VELVET + OPTIMISER                        ###
-###                            NO TRIM SKIPPED                         ###
-###                                                                    ###
-##########################################################################
-#new velvet using velvet optimiser note that velvet optimiser requires bioperl to be included in the PERL5LIB path
-skip()
-{
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-echo -e "now running velvet optimiser with the following parameters\n"
-echo -e "starting kmer = $START_KMER\n"
-echo -e "ending kmer = $END_KMER\n"
-cd $PBS_O_WORKDIR/tmp/${seq}
-log_eval $PBS_O_WORKDIR/tmp/${seq} "$VELVETOPT -o \"-scaffolding yes -min_contig_lgth 1000\" -s $START_KMER -e $END_KMER -f \"-shortPaired -fastq.gz ${seq}_merged.fastq.gz\" -t $NCPUS"
-mv $PBS_O_WORKDIR/tmp/${seq}/auto_data_*/contigs.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta
-cd $PBS_O_WORKDIR
-fi
-}
+
 ##########################################################################
 ###                                                                    ###
 ###                          VELVET + OPTIMISER                        ###  
@@ -104,15 +86,15 @@ fi
 ###                                                                    ###
 ##########################################################################
 
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.TRIM.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.fasta.bak -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-echo -e "now running velvet optimiser with the following parameters\n"
-echo -e "starting kmer = $START_KMER\n"
-echo -e "ending kmer = $END_KMER\n"
-cd $PBS_O_WORKDIR/tmp/${seq}
-mkdir velvTRIM
-log_eval $PBS_O_WORKDIR/tmp/${seq}/velvTRIM "$VELVETOPT -o \"-scaffolding yes -min_contig_lgth 1000\" -s $START_KMER -e $END_KMER -f \"-shortPaired -fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_merged.fastq.gz\" -t $NCPUS"
-mv $PBS_O_WORKDIR/tmp/${seq}/velvTRIM/auto_data_*/contigs.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta
-cd $PBS_O_WORKDIR
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then #removed test for ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.fasta.bak
+  echo -e "now running velvet optimiser with the following parameters\n"
+  echo -e "starting kmer = $START_KMER\n"
+  echo -e "ending kmer = $END_KMER\n"
+  cd $PBS_O_WORKDIR/tmp/${seq}
+  mkdir velvTRIM
+  log_eval $PBS_O_WORKDIR/tmp/${seq}/velvTRIM "$VELVETOPT -o \"-scaffolding yes -min_contig_lgth 1000\" -s $START_KMER -e $END_KMER -f \"-shortPaired -fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_merged.fastq.gz\" -t $NCPUS"
+  mv $PBS_O_WORKDIR/tmp/${seq}/velvTRIM/auto_data_*/contigs.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta
+  cd $PBS_O_WORKDIR
 fi
 
 ##########################################################################
@@ -132,11 +114,7 @@ fi
 ###                             ABACAS                                 ###
 ###                                                                    ###
 ##########################################################################
-#to do
-#include optional -c for circular genome. What if there are two circular chromosomes?
-#if [ "$contig_count" == 1 ]; then
-#    include below command with -c 
-#	else just perform below command
+
 if [ "$contig_count" != 1 ]; then	
     if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}mapped.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_out.fasta ]; then
       log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
@@ -189,7 +167,14 @@ fi
 
   
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-  echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/library.txt
+
+  #TODO need to write SSPACE version check for different library file. The below is for SSPACEv3.0
+  
+  #echo -e "${seq}SSPACE\tbowtie\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/library.txt
+  
+  #For SSPACE v2.0 basic
+  echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/library.txt
+  
   log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $SSPACE -l $PBS_O_WORKDIR/tmp/${seq}/library.txt -s ${seq}_IMAGE2_out.fasta"
   mv $PBS_O_WORKDIR/tmp/${seq}/standard_output.final.scaffolds.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta
   rm -rf $PBS_O_WORKDIR/tmp/${seq}/pairinfo
@@ -245,7 +230,7 @@ fi
 ###                                                                    ###
 ##########################################################################
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta ]; then
-  $CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn
+  log_eval $PBS_O_WORKDIR/tmp/${seq}/ "$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn"
   echo -e "Velvet assembly complete\n Project has been filtered to remove contigs less than 1kb in size \n"
  
 fi

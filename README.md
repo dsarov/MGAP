@@ -25,7 +25,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 
 <i>How do I run MGAP?</i>
 
-USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain>
+USAGE: MGAP.sh -r "<reference, without .fasta extension>" -s "<specify single strain>"
 
 MGAP expects reads to be paired-end Illumina data in the following format: STRAIN_1_sequence.fastq.gz (first pair) and STRAIN_2_sequence.fastq.gz (second pair).
 

@@ -2,12 +2,14 @@
 
 usage()
 {
-echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain>"
+echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain>\n\n"
 }
 help()
 {
 cat << _EOF_
+
 Thanks for using MGAP
+
 Microbial genome assembler is an automated assembly pipeline for paired end Illumina data
 
 The MGAP pipeline workflow is as follows:
@@ -32,6 +34,13 @@ To retain contigs <1kb in length please set the -l flag to yes
 _EOF_
 }
 
+
+if  [ $# -lt 1 ]
+    then
+	    usage
+		exit 1
+fi
+
 #Define path to MGAP install
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
@@ -42,7 +51,8 @@ source "$SCRIPTPATH"/scheduler.config
 #declare variables
 declare -rx SCRIPT=${0##*/}
 
-OPTSTRING="h:r:s:l:"
+OPTSTRING="hr:s:l:"
+
 
 
 
@@ -56,7 +66,7 @@ assemble=yes
 pairing=PE
 strain=all
 long=no
-
+h=yes
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do 
 		case $SWITCH in
@@ -75,7 +85,7 @@ while getopts "$OPTSTRING" SWITCH; do
 		   ;;
 		   
 		l) long="$OPTARG"
-		   echo "Contigs <1kb will be removed from final assembly = $long"
+		   echo "Contigs <1kb will be retained from final assembly = $long"
 			;;
 			
 		\?) usage

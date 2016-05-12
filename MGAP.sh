@@ -8,7 +8,7 @@ help()
 {
 cat << _EOF_
 Thanks for using MGAP
-The microbial genome assembler is an automated assmbly pipeline for paired end Illumina data
+Microbial genome assembler is an automated assembly pipeline for paired end Illumina data
 
 The MGAP pipeline workflow is as follows:
 
@@ -26,19 +26,14 @@ SSPACE is then run over the assembly to determine if any further joins can be ma
 Gapfiller is then used to fill in the joins created with SSPACE
 Finally ICORN is run in an attempt to fix any indels or SNP errors introduced during the assembly process
 
-Optionally contigs less than 1kb are removed from the final assembly using mira_convert
+Optionally contigs less than 1kb are removed from the final assembly using mira_convert 
+To retain contigs <1kb in length please set the -l flag to yes 
 
 _EOF_
 }
 
 #Define path to MGAP install
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-
-if  [ $# -lt 1 ]
-    then
-	    usage
-		exit 1
-fi
 
 # source dependencies
 source "$SCRIPTPATH"/MGAP.config 
@@ -47,7 +42,7 @@ source "$SCRIPTPATH"/scheduler.config
 #declare variables
 declare -rx SCRIPT=${0##*/}
 
-OPTSTRING="hr:s:"
+OPTSTRING="h:r:s:l:"
 
 
 
@@ -60,13 +55,14 @@ seq_directory="$PWD"
 assemble=yes
 pairing=PE
 strain=all
+long=no
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do 
 		case $SWITCH in
 		
 		h) usage
-                   help 
+           help 
 		   exit 1
 		   ;;
 		   
@@ -77,6 +73,10 @@ while getopts "$OPTSTRING" SWITCH; do
 		s) strain="$OPTARG"
 		   echo "Only strain $strain will be processed. By default all strains within current directory will be processed"
 		   ;;
+		   
+		l) long="$OPTARG"
+		   echo "Contigs <1kb will be removed from final assembly = $long"
+			;;
 			
 		\?) usage
 		    exit 1
@@ -107,47 +107,43 @@ fi
 cd $PBS_O_WORKDIR
 
 ## file checks and program checks
+if [ "$ref" != "none" ]; then
 
-if [ ! -s "$ref.fasta" ]; then
+
+  if [ ! -s "$ref.fasta" ]; then
         echo -e "Couldn't find reference file. Please make sure that reference file is in the analysis directory\n"
         exit 1
     else
 	    echo -e "Found FASTA file\n"
-fi
+  fi
 
-ref_blank_lines=`grep -c '^$' $ref.fasta`
+  ref_blank_lines=`grep -c '^$' $ref.fasta`
 
-if [ "$ref_blank_lines" != 0 ]; then
+  if [ "$ref_blank_lines" != 0 ]; then
 	    echo -e "ERROR: Reference FASTA file is formatted incorrectly and must contain 0 blank lines. Blank lines will cause BWA and GATK to fail."
         exit 1
     else
 	    echo -e "FASTA file looks to contain no blank lines. Good.\n"
+  fi
 fi
-
 
 VELVETG_TEST=`command -v "$VELVETG"`
 VELVETH_TEST=`command -v "$VELVETH"`
 JAVA_TEST=`command -v "$JAVA"`
-SHUFFLE_TEST=
-ABACAS=
-VELVETG=
-TRIM=
-VELVETOPT=
-IMAGE=
-ICORN2_HOME=
-SSPACE=
-PAGIT_HOME=
-
-
-
+SHUFFLE_TEST=`command -v "$SHUFFLE"`
+ABACAS_TEST=`command -v "$ABACAS"`
+VELVETOPT_TEST=`command -v "$VELVETOPT"`
+IMAGE_TEST=`command -v "$IMAGE/image.pl"`
+ICORN2_HOME_TEST=`command -v "$ICORN2_HOME/icorn2.sh"`
+SSPACE_TEST=`command -v "$SSPACE"`
 
 if [ -z "$VELVETG_TEST" ]; then
-	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config or the executable is in your PATH\n"
+	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config\n"
 		echo "MGAP is attempting to find velvetg here: $VELVETG"
 		exit 1
 fi
 if [ -z "$VELVETH_TEST" ]; then
-	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config or the executable is in your PATH\n"
+	    echo -e "ERROR: MGAP requires velvet to function. Please make sure the correct path is specified in MGAP.config\n"
 		echo "MGAP is attempting to find velvetg here: $VELVETH"
 		exit 1
 fi
@@ -155,6 +151,35 @@ if [ -z "$JAVA_TEST" ]; then
 	    echo "ERROR: MGAP requires java. Please make sure java is available on your system. The PATH to java can be modified in the MGAP.config file"
 		exit 1
 fi
+if [ -z "$SHUFFLE_TEST" ]; then
+	    echo "ERROR: MGAP requires shuffle sequences from velvet. Please make sure shuffle sequences is available on your system. The PATH to shuffle sequences can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ -z "$ABACAS_TEST" ]; then
+	    echo "ERROR: MGAP requires ABACAS. Please make sure ABACAS is available on your system. The PATH to ABACAS can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ ! -f "$TRIM" ]; then
+	    echo "ERROR: MGAP requires Trimmomatic. Please make sure trimmomatic is available on your system. The PATH to trimmomatic can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ -z "$VELVETOPT_TEST" ]; then
+	    echo "ERROR: MGAP requires velvet optimiser. Please make sure velvet optimiser is available on your system. The PATH to velvet optimiser can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ -z "$IMAGE_TEST" ]; then
+	    echo "ERROR: MGAP requires Image. Please make sure Image is available on your system. The PATH to Image can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ -z "$ICORN2_HOME_TEST" ]; then
+	    echo "ERROR: MGAP requires iCorn2. Please make sure iCorn2 is available on your system. The PATH to iCorn2 can be modified in the MGAP.config file"
+		exit 1
+fi
+if [ -z "$SSPACE_TEST" ]; then
+	    echo "ERROR: MGAP requires SSPACE. Please make sure SSPACE is available on your system. The PATH to SSPACE can be modified in the MGAP.config file"
+		exit 1
+fi
+
 
 
 ### Handling and checks for read files
@@ -194,52 +219,15 @@ fi
 #create directory structure
 
 if [ ! -d "tmp" ]; then
-	mkdir $seq_directory/tmp
+	mkdir "$seq_directory"/tmp
 fi
 if [ ! -d "Assemblies" ]; then
-	mkdir $seq_directory/Assemblies
+	mkdir "$seq_directory"/Assemblies
 fi
 
 if [ -s qsub_ids.txt ]; then
     rm qsub_ids.txt
 fi
-
-
-## Indexing of the reference with SAMTools and BWA
-skip () {
-if [ ! -s "$ref_index" ]; then
-	echo -e "Submitting qsub job for BWA reference indexing\n"
-    cmd="$BWA index -a is -p ${seq_directory}/${ref} ${seq_directory}/${ref}.fasta"
-    qsub_id=`qsub -N index -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=1,walltime=$WALL_T -v command="$cmd" "$SCRIPTPATH"/Header.pbs`
-    echo -e "index\t$qsub_id" >> qsub_ids.txt
-fi
-if [ ! -s "$REF_INDEX_FILE" ]; then
-    echo -e "Submitting qsub job for SAMtools reference indexing\n"
-    cmd="$SAMTOOLS faidx ${seq_directory}/${ref}.fasta"
-    qsub_id=`qsub -N SAM_index -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=1,walltime=$WALL_T -v command="$cmd" "$SCRIPTPATH"/Header.pbs`
-    echo -e "SAM_index\t$qsub_id" >> qsub_ids.txt
-fi
-if [ ! -s "$REF_DICT" ]; then
-    echo -e "Submitting qsub job for ${ref}.dict creation\n"
-    cmd="$JAVA $SET_VAR $CREATEDICT R=${seq_directory}/${ref}.fasta O=$REF_DICT"
-	qsub_id=`qsub -N PICARD_dict -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=1,walltime=$WALL_T -v command="$cmd" "$SCRIPTPATH"/Header.pbs`
-	echo -e "PICARD_dict\t$qsub_id" >> qsub_ids.txt
-fi
-if [ ! -s "$REF_BED" -a qsub_ids.txt ]; then
-    echo -e "Submitting qsub job for BED file construction with BEDTools\n"
-	qsub_cat_ids=`cat qsub_ids.txt | cut -f2 | sed -e 's/^/:/' | tr -d '\n'`
-	depend="-W depend=afterok${qsub_cat_ids}"
-    cmd="$BEDTOOLS makewindows -g $REF_INDEX_FILE -w $window > $REF_BED"
-    qsub_id=`qsub -N BED_window -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=1,walltime=$WALL_T "$depend" -v command="$cmd" "$SCRIPTPATH"/Header.pbs`
-    echo -e "BED_window\t$qsub_id" >> qsub_ids.txt	
-fi
-if [ ! -s "$REF_BED" -a ! qsub_ids.txt ]; then
-    echo -e "Submitting qsub job for BED file construction with BEDTools\n"
-    cmd="$BEDTOOLS makewindows -g $REF_INDEX_FILE -w $window > $REF_BED"
-    qsub_id=`qsub -N BED_window -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=1,walltime=$WALL_T -v command="$cmd" "$SCRIPTPATH"/Header.pbs`
-    echo -e "BED_window\t$qsub_id" >> qsub_ids.txt	
-fi
-}
 
 ##TODO
 #include resource management for SGE and SLURM
@@ -249,19 +237,19 @@ assemble_single ()
 if [ -s qsub_ids.txt ]; then
     qsub_cat_ids=`cat qsub_ids.txt | cut -f2 | sed -e 's/^/:/' | tr -d '\n'`
     depend="-W depend=afterok${qsub_cat_ids}"
-    if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences}_final.fasta ]; then
-		echo -e "Submitting qsub job for de novo assembly of $sequences\n"
-        var="seq=$sequences,ref=$ref,seq_path=$seq_directory,kmer=$kmer,SCRIPTPATH=$SCRIPTPATH"
-		qsub_array_id=`qsub -N Assemble_sequences -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T "$depend" -v "$var" "$SCRIPTPATH"/assembler.sh`
+    if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${strain}_final.fasta ]; then
+		echo -e "Submitting qsub job for de novo assembly of ${strain}\n"
+        var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+		qsub_array_id=`qsub -N Assemble_${strain} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T "$depend" -v "$var" "$SCRIPTPATH"/assembler.sh`
         echo -e "aln_sequences\t$qsub_array_id" >> qsub_array_ids.txt
 	fi
         
 fi
 if [ ! -s qsub_ids.txt ]; then
     if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences}_final.fasta ]; then
-		echo -e "Submitting qsub job for de novo assembly of ${sequences[$i]}\n"
-	    var="seq=$sequences,ref=$ref,seq_path=$seq_directory,kmer=$kmer,SCRIPTPATH=$SCRIPTPATH"
-		qsub_array_id=`qsub -N Assemble_$sequences -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T -v "$var" "$SCRIPTPATH"/assembler.sh`
+		echo -e "Submitting qsub job for de novo assembly of ${strain}\n"
+	    var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+		qsub_array_id=`qsub -N Assemble_${strain} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T -v "$var" "$SCRIPTPATH"/assembler.sh`
 		echo -e "aln_$sequences\t$qsub_array_id" >> qsub_array_ids.txt
 	fi
 fi
@@ -276,7 +264,7 @@ if [ -s qsub_ids.txt ]; then
         for (( i=0; i<n; i++ )); do
             if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences[$i]}_final.fasta ]; then
 		        echo -e "Submitting qsub job for de novo assembly of ${sequences[$i]}\n"
-                var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,SCRIPTPATH=$SCRIPTPATH"
+                var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
 		        qsub_array_id=`qsub -N Assemble_${sequences[$i]} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T "$depend" -v "$var" "$SCRIPTPATH"/assembler.sh`
                 echo -e "aln_${sequences[$i]}\t$qsub_array_id" >> qsub_assemble_ids.txt
 				sleep 0.25
@@ -287,7 +275,7 @@ if [ ! -s qsub_ids.txt ]; then
         for (( i=0; i<n; i++ )); do
             if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences[$i]}_final.fasta ]; then
 		        echo -e "Submitting qsub job for de novo assembly of ${sequences[$i]}\n"
-	    	    var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,SCRIPTPATH=$SCRIPTPATH"
+	    	    var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
 		        qsub_array_id=`qsub -N Assemble_${sequences[$i]} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T -v "$var" "$SCRIPTPATH"/assembler.sh`
 				echo -e "aln_${sequences[$i]}\t$qsub_array_id" >> qsub_assemble_ids.txt
 				sleep 0.25

@@ -47,7 +47,7 @@ fi
 ###                           ABACAS REF                               ###
 ###                                                                    ###
 ##########################################################################
-if [ $ref != "none" ]; then
+if [ "$ref" != "none" ]; then
     contig_count=`grep -c '>' ${ref}.fasta`
 
     if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
@@ -115,20 +115,25 @@ fi
 ###                                                                    ###
 ##########################################################################
 
-if [ "$contig_count" != 1 ]; then	
+if [ "$contig_count" != 1 -a "$ref" != "none" ]; then	
     if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}mapped.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_out.fasta ]; then
       log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
       echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
       cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 	fi
 fi
-if [ "$contig_count" == 1 ]; then
+if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
     if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}mapped.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_out.fasta ]; then
       log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
       echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
       cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 	fi
 fi
+if [ "$ref" == "none" ]; then
+  mv $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}mapnunmap.fasta
+fi
+
+
 ##########################################################################
 ###                                                                    ###
 ###                             IMAGE                                  ###
@@ -189,7 +194,7 @@ fi
 
 
 ### SSPACE test ############
-## This will skip the next step if SSPACE doesn't find anything to scaffold in your assembly, which causes gapfiller to crash
+## This will skip the next step if SSPACE doesn't find anything to scaffold in your assembly, which caused a gapfiller crash
 
 
 
@@ -214,26 +219,21 @@ if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta -a ! -s ${PBS_O_WORKDIR}/A
 	rm -rf $PBS_O_WORKDIR/tmp/${seq}/SSPACE_scaff/
 fi
 
-
-
-#To do 
-#The above command will crash when SSPACE doesn't insert any Ns into the fasta sequence
-#need to include a test for the SSPACE output when it doesn't scaffold any contigs and then skip gapfiller
-
-###=>Sat Aug 22 05:16:25 2015: Building BWA index for library MSHR8238resequencedUnfilt_Gapfiller
-##Previous command returned error: 25
-
-
 ##########################################################################
 ###                                                                    ###
 ###                             ICORN                                  ###
 ###                                                                    ###
 ##########################################################################
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta ]; then
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "no" ]; then
   log_eval $PBS_O_WORKDIR/tmp/${seq}/ "$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn"
-  echo -e "Velvet assembly complete\n Project has been filtered to remove contigs less than 1kb in size \n"
- 
+  echo -e "Project has been filtered to remove contigs less than 1kb in size \n"
+  
 fi
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "yes" ]; then
+    mv $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta
+	echo =e "Project includes all contigs including htose <1kb in size\n"
+fi	
+
 if [ -d $PBS_O_WORKDIR/tmp/${seq}/ite12 -a -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta ]; then
   rm -rf $PBS_O_WORKDIR/tmp/${seq}/ite*
 fi

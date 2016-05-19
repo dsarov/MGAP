@@ -2,7 +2,7 @@
 
 <i>What is MGAP?</i>
 
-MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that incorporates several genome assembly programs into one tool for high-quality, reference-assisted assembly of  microbial genomes using paired-end Illumina data.
+MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that incorporates several genome assembly programs into one tool for high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.
 
 <i>What resource managers can MGAP use?</i>
 
@@ -10,7 +10,7 @@ MGAP currently only works with the PBS (Torque) resource manager.
 
 <i>MGAP workflow</i>
 
-MGAP performs assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
+MGAP performs reference assisted assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
 - <b>Trimmomatic</b> (Bolger AM et al., 2014)
@@ -26,6 +26,8 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 <i>How do I run MGAP?</i>
 
 USAGE: MGAP.sh -r [reference, without .fasta extension] -s [specify single strain]
+
+If you would prefer MGAP to perform assemblies without using a reference to assist or if no reference is available, set the -r flag to "none".
 
 MGAP expects reads to be paired-end Illumina data in the following format: STRAIN_1_sequence.fastq.gz (first pair) and STRAIN_2_sequence.fastq.gz (second pair).
 

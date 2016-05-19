@@ -179,6 +179,7 @@ if [ -z "$VELVETOPT_TEST" ]; then
 fi
 if [ -z "$IMAGE_TEST" ]; then
 	    echo "ERROR: MGAP requires Image. Please make sure Image is available on your system. The PATH to Image can be modified in the MGAP.config file"
+	    echo "MGAP is attempting to find image here: $IMAGE"
 		exit 1
 fi
 if [ -z "$ICORN2_HOME_TEST" ]; then

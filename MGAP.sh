@@ -27,7 +27,7 @@ The scaffolded and ordered contigs are then stitched together, if possible, usin
 SSPACE (Boetzer et al., 2011 Bioinformatics 27(4):578-9) is then run over the assembly to determine if any further joins can be made between the contigs, and Gapfiller is used to fill in the joins created with SSPACE.
 Finally, ICORN2 (Otto et al., 2010 Bioinformatics 26(14):1704-7) is run to fix indel or SNP errors introduced during the assembly process.
 
-By default, contigs <1kb are removed from the final assembly using miraconvert, a tool within the program MIRA (http://mira-assembler.sourceforge.net/docs/DefinitiveGuideToMIRA.html).
+By default, contigs <1kb are removed from the final assembly using convert_project, a tool within the program MIRA (http://mira-assembler.sourceforge.net/docs/DefinitiveGuideToMIRA.html).
 To retain contigs <1kb in length, please set the -l flag to yes.
 
 _EOF_

@@ -2,34 +2,33 @@
 
 usage()
 {
-echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain>\n\n"
+echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain> -l <retain contigs <1kb [yes/no]>\n\n"
 }
 help()
 {
 cat << _EOF_
 
-Thanks for using MGAP
+Thanks for using MGAP!
 
-Microbial genome assembler is an automated assembly pipeline for paired end Illumina data
+The Microbial Genome Assembler Pipeline (MGAP) is an automated assembly pipeline for paired-end Illumina data generated from microbial genomes.
 
 The MGAP pipeline workflow is as follows:
 
 Data Filtering:
-FastQ data is first conservatively filtered with Trimmomatic to remove adapter contamination and very low quality base calls.
+The .fastq data are conservatively filtered with Trimmomatic (Bolger et al., 2014 Bioinformatics 30(15): 2114–2120) to remove adapter contamination and low-quality base calls.
 
 Initial Assembly Draft:
-A draft assembly is constructed using Velvet with parameters optimised using velvet optimiser.
+A draft assembly is constructed using Velvet (Zerbino and Birney, 2008 Genome Res 18, 821-829) with parameters optimised using VelvetOptimiser (https://github.com/tseemann/VelvetOptimiser).
 
-Assembly Improvement and Error Correction
-Scaffolds created with Velvet are first attempted to be filled using Gapfiller.
-Next the draft contigs are ordered against a reference genome using ABACAS.
-The scaffolded and ordered contigs are stiched together if possible using IMAGE.
-SSPACE is then run over the assembly to determine if any further joins can be made between the contigs
-Gapfiller is then used to fill in the joins created with SSPACE
-Finally ICORN is run in an attempt to fix any indels or SNP errors introduced during the assembly process
+Assembly Improvement and Error Correction:
+Scaffolds created with Velvet are first attempted to be filled using Gapfiller (Boetzer & Pirovano, 2012 Genome Biol 13, R56).
+Next, the draft contigs are ordered against a reference genome using ABACAS (Assefa et al., 2009 Bioinformatics 25(15):1968-9).
+The scaffolded and ordered contigs are then stitched together, if possible, using IMAGE (Tsai et al., 2010 Genome Biol 11(4):R41).
+SSPACE (Boetzer et al., 2011 Bioinformatics 27(4):578-9) is then run over the assembly to determine if any further joins can be made between the contigs, and Gapfiller is used to fill in the joins created with SSPACE.
+Finally, ICORN2 (Otto et al., 2010 Bioinformatics 26(14):1704-7) is run to fix indel or SNP errors introduced during the assembly process.
 
-Optionally contigs less than 1kb are removed from the final assembly using mira_convert 
-To retain contigs <1kb in length please set the -l flag to yes 
+By default, contigs <1kb are removed from the final assembly using miraconvert, a tool within the program MIRA (http://mira-assembler.sourceforge.net/docs/DefinitiveGuideToMIRA.html).
+To retain contigs <1kb in length, please set the -l flag to yes.
 
 _EOF_
 }

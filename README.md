@@ -13,15 +13,15 @@ MGAP currently only works with the PBS (Torque) resource manager.
 MGAP performs reference assisted assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
-- <b>Trimmomatic</b> [(Bolger AM et al., 2014)](http://bioinformatics.oxfordjournals.org/content/30/15/2114)
-- <b>Velvet</b> (Zerbino DR & Birney E, 2008)
+- <b>Trimmomatic</b> [(Bolger et al., 2014)](http://bioinformatics.oxfordjournals.org/content/30/15/2114)
+- <b>Velvet</b> [(Zerbino & Birney, 2008)](http://genome.cshlp.org/content/18/5/821.full)
 - <b>VelvetOptimiser</b> (https://github.com/tseemann/VelvetOptimiser)
-- <b>GapFiller</b> (Boetzer M & Pirovano W, 2012)
-- <b>ABACAS</b> (Assefa S et al., 2009)
-- <b>IMAGE</b> (Tsai IJ et al., 2010)
-- <b>SSPACE</b> (Boetzer M et al., 2011)
-- <b>ICORN2</b> (Otto TD et al., 2010)
-- <b>MIRA (convert_project)</b> (Chevreux B et al., 1999)
+- <b>GapFiller</b> [(Boetzer & Pirovano, 2012)](http://genomebiology.biomedcentral.com/articles/10.1186/gb-2012-13-6-r56)
+- <b>ABACAS</b> [(Assefa et al., 2009)](http://bioinformatics.oxfordjournals.org/content/25/15/1968.long)
+- <b>IMAGE</b> [(Tsai et al., 2010)](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-4-r41)
+- <b>SSPACE</b> [(Boetzer et al., 2011)](http://bioinformatics.oxfordjournals.org/content/27/4/578.long)
+- <b>ICORN2</b> [(Otto et al., 2010)](http://bioinformatics.oxfordjournals.org/content/26/14/1704.full)
+- <b>MIRA (convert_project)</b> (Chevreux et al., 1999)
 
 <i>How do I run MGAP?</i>
 

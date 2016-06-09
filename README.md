@@ -48,7 +48,3 @@ MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSa
 <i>What to do if I run into issues with MGAP?</i>
 
 Please send bug reports to mshr.bioinformatics@gmail.com or derek.sarovich@menzies.edu.au.
-
-We are in the process of uploading our assembly pipeline to GitHub. If you are interested in our project, please contact us.
-
-Please check back shortly for our updated project!

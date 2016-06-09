@@ -13,7 +13,7 @@ MGAP currently only works with the PBS (Torque) resource manager.
 MGAP performs reference assisted assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
-- <b>Trimmomatic</b> [Bolger AM et al., 2014](http://bioinformatics.oxfordjournals.org/content/30/15/2114)
+- <b>Trimmomatic</b> [(Bolger AM et al., 2014)](http://bioinformatics.oxfordjournals.org/content/30/15/2114)
 - <b>Velvet</b> (Zerbino DR & Birney E, 2008)
 - <b>VelvetOptimiser</b> (https://github.com/tseemann/VelvetOptimiser)
 - <b>GapFiller</b> (Boetzer M & Pirovano W, 2012)

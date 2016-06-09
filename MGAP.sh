@@ -249,7 +249,7 @@ if [ -s qsub_ids.txt ]; then
     depend="-W depend=afterok${qsub_cat_ids}"
     if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${strain}_final.fasta ]; then
 		echo -e "Submitting qsub job for de novo assembly of ${strain}\n"
-        var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+        var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH,PATH=$SCRIPTPATH/bin/velvet_1.2.10/:$PATH"
 		qsub_array_id=`qsub -N Assemble_${strain} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T "$depend" -v "$var" "$SCRIPTPATH"/assembler.sh`
         echo -e "aln_sequences\t$qsub_array_id" >> qsub_array_ids.txt
 	fi
@@ -258,7 +258,7 @@ fi
 if [ ! -s qsub_ids.txt ]; then
     if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences}_final.fasta ]; then
 		echo -e "Submitting qsub job for de novo assembly of ${strain}\n"
-	    var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+	    var="seq=${strain},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH,PATH=$SCRIPTPATH/bin/velvet_1.2.10/:$PATH"
 		qsub_array_id=`qsub -N Assemble_${strain} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T -v "$var" "$SCRIPTPATH"/assembler.sh`
 		echo -e "aln_$sequences\t$qsub_array_id" >> qsub_array_ids.txt
 	fi
@@ -274,7 +274,7 @@ if [ -s qsub_ids.txt ]; then
         for (( i=0; i<n; i++ )); do
             if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences[$i]}_final.fasta ]; then
 		        echo -e "Submitting qsub job for de novo assembly of ${sequences[$i]}\n"
-                var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+                var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH,PATH=$SCRIPTPATH/bin/velvet_1.2.10/:$PATH"
 		        qsub_array_id=`qsub -N Assemble_${sequences[$i]} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T "$depend" -v "$var" "$SCRIPTPATH"/assembler.sh`
                 echo -e "aln_${sequences[$i]}\t$qsub_array_id" >> qsub_assemble_ids.txt
 				sleep 0.25
@@ -285,7 +285,7 @@ if [ ! -s qsub_ids.txt ]; then
         for (( i=0; i<n; i++ )); do
             if [ ! -s ${PBS_O_WORKDIR}/Assemblies/${sequences[$i]}_final.fasta ]; then
 		        echo -e "Submitting qsub job for de novo assembly of ${sequences[$i]}\n"
-	    	    var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH"
+	    	    var="seq=${sequences[$i]},ref=$ref,seq_path=$seq_directory,kmer=$kmer,long=$long,SCRIPTPATH=$SCRIPTPATH,PATH=$SCRIPTPATH/bin/velvet_1.2.10/:$PATH"
 		        qsub_array_id=`qsub -N Assemble_${sequences[$i]} -j $ERROR_OUTPUT -m $MAIL -M $ADDRESS -l ncpus=$NCPUS,walltime=$WALL_T -v "$var" "$SCRIPTPATH"/assembler.sh`
 				echo -e "aln_${sequences[$i]}\t$qsub_array_id" >> qsub_assemble_ids.txt
 				sleep 0.25

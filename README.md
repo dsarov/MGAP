@@ -21,7 +21,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>IMAGE</b> [(Tsai et al., 2010)](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-4-r41)
 - <b>SSPACE</b> [(Boetzer et al., 2011)](http://bioinformatics.oxfordjournals.org/content/27/4/578.long)
 - <b>ICORN2</b> [(Otto et al., 2010)](http://bioinformatics.oxfordjournals.org/content/26/14/1704.full)
-- <b>MIRA (convert_project)</b> (Chevreux et al., 1999)
+- <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
 <i>How do I run MGAP?</i>
 

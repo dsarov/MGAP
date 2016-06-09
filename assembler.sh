@@ -65,7 +65,7 @@ fi
 ##########################################################################
 
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_merged.fastq.gz -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-  log_eval $PBS_O_WORKDIR "$JAVA -jar $TRIM PE -phred33 -threads $NCPUS ${seq}_1_sequence.fastq.gz ${seq}_2_sequence.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz ILLUMINACLIP:/home/dsarovich/bin/Trimmomatic-0.33/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36" #comment out to remove TRIM step
+  log_eval $PBS_O_WORKDIR "$JAVA -jar $TRIM PE -phred33 -threads $NCPUS ${seq}_1_sequence.fastq.gz ${seq}_2_sequence.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz ILLUMINACLIP:$TRIM_DIR/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36" #comment out to remove TRIM step
   log_eval $PBS_O_WORKDIR "gunzip $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz" #TRIM specific
   log_eval $PBS_O_WORKDIR "gunzip $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz" #TRIM specific
   rm $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz #TRIM specific
@@ -104,7 +104,7 @@ fi
 ##########################################################################
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta ]; then
     echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/Gapfiller.txt
-    log_eval $PBS_O_WORKDIR/tmp/${seq}/ "perl /home/dsarovich/bin/GapFiller_v1-10_linux-x86_64/GapFiller.pl -l Gapfiller.txt -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
+    log_eval $PBS_O_WORKDIR/tmp/${seq}/ "perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
     mv $PBS_O_WORKDIR/tmp/${seq}/Velv_scaff/Velv_scaff.gapfilled.final.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_velvet.fasta
 	rm -rf $PBS_O_WORKDIR/tmp/${seq}/Velv_scaff/
 fi
@@ -214,7 +214,7 @@ fi
 ##########################################################################
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
    # echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/Gapfiller.txt
-    log_eval $PBS_O_WORKDIR/tmp/${seq}/ "perl /home/dsarovich/bin/GapFiller_v1-10_linux-x86_64/GapFiller.pl -l Gapfiller.txt -s $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
+    log_eval $PBS_O_WORKDIR/tmp/${seq}/ "perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
     mv $PBS_O_WORKDIR/tmp/${seq}/SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta
 	rm -rf $PBS_O_WORKDIR/tmp/${seq}/SSPACE_scaff/
 fi
@@ -245,7 +245,7 @@ fi
 #include the NCPUS variable for icorn to utilise the multiple threads specified in the assembly section
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.3 -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
 
- log_eval $PBS_O_WORKDIR/tmp/${seq} "perl /home/dsarovich/bin/ICORN2/icorn2.sh ${seq} 300 ${seq}_icorn.fasta 1 3"
+ log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $ICORN2_HOME/icorn2.sh ${seq} 300 ${seq}_icorn.fasta 1 3"
 fi 
 if [ -s $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.4 -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
 mv $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.4 ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta

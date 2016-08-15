@@ -84,7 +84,7 @@ while getopts "$OPTSTRING" SWITCH; do
 		   ;;
 		   
 		l) long="$OPTARG"
-		   echo "Contigs <1kb will be retained from final assembly = $long"
+		   echo "Contigs <1kb will be retained in final assembly = $long"
 			;;
 			
 		\?) usage

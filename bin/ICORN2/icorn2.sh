@@ -10,7 +10,7 @@ end=$5
 User=$(whoami)
 
 
-if [ ! -z "$ICORN2_HOME" ] ; then
+if [ -z "$ICORN2_HOME" ] ; then
 
 #ICORN2_HOME=/nfs/users/nfs_t/tdo/Bin; export ICORN2_HOME
 	echo "Please set the ICORN2_HOME directory. It is the directory where this program is copied to."

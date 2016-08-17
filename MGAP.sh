@@ -2,7 +2,7 @@
 
 usage()
 {
-echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension> -s <specify single strain> -l <retain contigs <1kb [yes/no]>\n\n"
+echo -e  "USAGE: MGAP.sh -r <reference, without .fasta extension, or set to none for unassisted assemblies> -s <specify single strain> -l <retain contigs <1kb [yes/no]>\n\n"
 }
 help()
 {

@@ -231,7 +231,7 @@ if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "no" ]; the
 fi
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "yes" ]; then
     mv $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta
-	echo =e "Project includes all contigs including htose <1kb in size\n"
+	echo -e "Project includes all contigs including htose <1kb in size\n"
 fi	
 
 if [ -d $PBS_O_WORKDIR/tmp/${seq}/ite12 -a -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta ]; then

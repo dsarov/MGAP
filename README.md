@@ -6,7 +6,7 @@ MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that incorpo
 
 <i>What resource managers can MGAP use?</i>
 
-MGAP currently only works with the PBS (Torque) resource manager.
+MGAP currently only works with the PBS (Torque) resource manager. If you would like MGAP to utilise different resource managers please contact me at derek.sarovich@gmail.com
 
 <i>MGAP workflow</i>
 
@@ -47,4 +47,4 @@ MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSa
 
 <i>What to do if I run into issues with MGAP?</i>
 
-Please send bug reports to mshr.bioinformatics@gmail.com or derek.sarovich@menzies.edu.au.
+Please send bug reports to mshr.bioinformatics@gmail.com or derek.sarovich@gmail.com

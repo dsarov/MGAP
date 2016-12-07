@@ -25,18 +25,18 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 
 <i>How do I install MGAP?</i>
 
-1. Download or clone the MGAP git repository. 
+1) Download or clone the MGAP git repository. 
 
 git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git
 
-2. Add executable permissions to the installation
+2) Add executable permissions to the installation
 
 cd MGAP---Microbial-Genome-Assembler-Pipeline.git
 chmod +x ./*
 
-3. Edit the MGAP.config to point to the installation location of MGAP 
+3) Edit the MGAP.config to point to the installation location of MGAP 
 
-4. 
+4) 
 
 <i>How do I run MGAP?</i>
 

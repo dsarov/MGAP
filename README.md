@@ -24,9 +24,10 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
 <i>How do I install MGAP?</i>
+
 1. Download or clone the MGAP git repository
 
-###git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git
+git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git
 
 2. Edit the MGAP.config to point to the installation location of MGAP 
 

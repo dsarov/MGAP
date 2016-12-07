@@ -31,7 +31,7 @@ git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.g
 
 2) Add executable permissions to the installation
 
-cd MGAP---Microbial-Genome-Assembler-Pipeline.git
+cd MGAP---Microbial-Genome-Assembler-Pipeline
 
 chmod -R +x ./*
 

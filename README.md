@@ -33,11 +33,11 @@ git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.g
 
 cd MGAP---Microbial-Genome-Assembler-Pipeline.git
 
-chmod +x ./*
+chmod -R +x ./*
 
-3) Edit the MGAP.config to point to the installation location of MGAP 
+3) Edit the MGAP.config to point to the installation location of MGAP. You should just need to change the MGAP_LOCATION variable. 
 
-4) 
+4) Test out the pipeline. MGAP should complain if it can't find any of its dependencies.
 
 <i>How do I run MGAP?</i>
 

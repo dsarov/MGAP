@@ -23,6 +23,9 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>ICORN2</b> [(Otto et al., 2010)](http://bioinformatics.oxfordjournals.org/content/26/14/1704.full)
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
+<i>How do I install MGAP?</i>
+
+
 <i>How do I run MGAP?</i>
 
 USAGE: MGAP.sh -r [reference, without .fasta extension] -s [specify single strain]

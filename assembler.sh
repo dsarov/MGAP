@@ -51,7 +51,7 @@ if [ "$ref" != "none" ]; then
     contig_count=`grep -c '>' ${ref}.fasta`
 
     if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
-      log_eval $PBS_O_WORKDIR "perl $PAGIT_HOME/ABACAS/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
+      log_eval $PBS_O_WORKDIR "perl $SCRIPTPATH/bin/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
     fi
     if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count == 1 ]; then
        ln -s $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta

@@ -195,7 +195,9 @@ fi
 ### Handling and checks for read files
 if [ "$strain" == all ]; then
     sequences_tmp=(`find $PBS_O_WORKDIR/*_1_sequence.fastq.gz -printf "%f "`)
-    sequences=("${sequences_tmp[@]/_1_sequence.fastq.gz/}")
+	sequences_rename=("${sequences_tmp[@]/_1_sequence.fastq.gz/}")
+	IFS=$'\n' sequences=($(sort <<<"${sequences_rename[*]}"))
+	unset IFS
     n=${#sequences[@]}
     if [ $n == 0 ]; then
         echo -e "Program couldn't find any sequence files to process"
@@ -210,7 +212,9 @@ fi
 ## check for read pairing and correct notation #need to test
 if [ "$pairing" == PE -a "$strain" == all ]; then
 	sequences_tmp2=(`find $PBS_O_WORKDIR/*_2_sequence.fastq.gz -printf "%f "`)
-    sequences2=("${sequences_tmp2[@]/_2_sequence.fastq.gz/}")
+	sequences2_rename=("${sequences_tmp2[@]/_2_sequence.fastq.gz/}")
+	IFS=$'\n' sequences2=($(sort <<<"${sequences2_rename[*]}"))
+	unset IFS
     n2=${#sequences2[@]}
     if [ $n != $n2 ]; then
 	    echo "Number of forward reads don't match number of reverse reads. Please check that for running in PE mode all read files have correctly named pairs"

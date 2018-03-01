@@ -59,7 +59,7 @@ Finally, ICORN2 v0.95 corrects any insertion-deletion (indel) and SNP errors in 
 
 <i>Who created MGAP?</i>
 
-MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSarovich)) and Erin Price ([@Dr_ErinPrice](https://twitter.com/Dr_ErinPrice)) at Menzies School of Health Research, Darwin, NT, Australia.
+MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSarovich)) and Erin Price ([@Dr_ErinPrice](https://twitter.com/Dr_ErinPrice)) at University of the Sunshine Coast, Sippy Downs, QLD, Australia.
 
 <i>What to do if I run into issues with MGAP?</i>
 

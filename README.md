@@ -20,7 +20,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>ABACAS</b> [(Assefa et al., 2009)](http://bioinformatics.oxfordjournals.org/content/25/15/1968.long)
 - <b>IMAGE</b> [(Tsai et al., 2010)](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-4-r41)
 - <b>SSPACE</b> [(Boetzer et al., 2011)](http://bioinformatics.oxfordjournals.org/content/27/4/578.long)
-- <b>ICORN2</b> [(Otto et al., 2010)](http://bioinformatics.oxfordjournals.org/content/26/14/1704.full)
+- <b>Pilon</b> [(Walker et al., 2014)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0112963)
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
 <i>How do I install MGAP?</i>
@@ -63,4 +63,4 @@ MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSa
 
 <i>What to do if I run into issues with MGAP?</i>
 
-Please send bug reports to mshr.bioinformatics@gmail.com or derek.sarovich@gmail.com
+Please send bug reports to derek.sarovich@gmail.com

@@ -55,7 +55,7 @@ Next, a draft scaffold assembly is  created using Velvet 1.2.10, with parameters
 
 GapFiller v2.1.1 is then used to attempt to fill in the scaffolds created by Velvet. Following creation of the draft Velvet assemblies, the best assembly is then improved upon using ABACAS v1.3.1 and IMAGE v2.4.1. If the user provides a reference genome, ABACAS scaffolds the contigs against this reference. If no user-specified reference is provided, this ABACAS step is skipped. Scaffolded contigs are then attempted to be joined using IMAGE, which will break contigs that have been incorrectly joined. A second attempt is then made to scaffold contigs using SSPACE v3.0. GapFiller is then run again to attempt to fill in the scaffolds created by SSPACE. 
 
-Finally, ICORN2 v0.95 corrects any insertion-deletion (indel) and SNP errors in the final assembly. Contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA v4. 
+Finally, Pilon corrects any insertion-deletion (indel) and SNP errors in the final assembly. Optionally, contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA v4. 
 
 <i>Who created MGAP?</i>
 

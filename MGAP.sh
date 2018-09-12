@@ -25,7 +25,7 @@ Scaffolds created with Velvet are first attempted to be filled using Gapfiller (
 Next, the draft contigs are ordered against a reference genome using ABACAS (Assefa et al., 2009 Bioinformatics 25(15):1968-9).
 The scaffolded and ordered contigs are then stitched together, if possible, using IMAGE (Tsai et al., 2010 Genome Biol 11(4):R41).
 SSPACE (Boetzer et al., 2011 Bioinformatics 27(4):578-9) is then run over the assembly to determine if any further joins can be made between the contigs, and Gapfiller is used to fill in the joins created with SSPACE.
-Finally, ICORN2 (Otto et al., 2010 Bioinformatics 26(14):1704-7) is run to fix indel or SNP errors introduced during the assembly process.
+Finally, Pilon (Walker et al., 2014 PLoS ONE) is run to fix indel or SNP errors introduced during the assembly process.
 
 By default, contigs <1kb are removed from the final assembly using convert_project, a tool within the program MIRA (http://mira-assembler.sourceforge.net/docs/DefinitiveGuideToMIRA.html).
 To retain contigs <1kb in length, please set the -l flag to yes.
@@ -136,6 +136,8 @@ if [ "$ref" != "none" ]; then
   fi
 fi
 
+#TODO inc bwa and samtools test
+
 VELVETG_TEST=`command -v "$VELVETG"`
 VELVETH_TEST=`command -v "$VELVETH"`
 JAVA_TEST=`command -v "$JAVA"`
@@ -143,7 +145,7 @@ SHUFFLE_TEST=`command -v "$SHUFFLE"`
 ABACAS_TEST=`command -v "$ABACAS"`
 VELVETOPT_TEST=`command -v "$VELVETOPT"`
 IMAGE_TEST=`command -v "$IMAGE/image.pl"`
-ICORN2_HOME_TEST=`command -v "$ICORN2_HOME/icorn2.sh"`
+#ICORN2_HOME_TEST=`command -v "$ICORN2_HOME/icorn2.sh"`
 SSPACE_TEST=`command -v "$SSPACE"`
 
 if [ -z "$VELVETG_TEST" ]; then
@@ -181,10 +183,10 @@ if [ -z "$IMAGE_TEST" ]; then
 	    echo "MGAP is attempting to find image here: $IMAGE"
 		exit 1
 fi
-if [ -z "$ICORN2_HOME_TEST" ]; then
-	    echo "ERROR: MGAP requires iCorn2. Please make sure iCorn2 is available on your system. The PATH to iCorn2 can be modified in the MGAP.config file"
-		exit 1
-fi
+#if [ -z "$ICORN2_HOME_TEST" ]; then
+#	    echo "ERROR: MGAP requires iCorn2. Please make sure iCorn2 is available on your system. The PATH to iCorn2 can be modified in the MGAP.config file"
+#		exit 1
+#fi
 if [ -z "$SSPACE_TEST" ]; then
 	    echo "ERROR: MGAP requires SSPACE. Please make sure SSPACE is available on your system. The PATH to SSPACE can be modified in the MGAP.config file"
 		exit 1

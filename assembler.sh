@@ -2,12 +2,12 @@
 
 
 
+
+
+
 source "$SCRIPTPATH"/MGAP.config
 source "$SCRIPTPATH"/velvet_optimiser.config
 source "$SCRIPTPATH"/scheduler.config
-
-ICORN2_THREADS=$NCPUS
-
 
 # sets the variable PBS_O_WORKDIR for non PBS systems
 if [ ! $PBS_O_WORKDIR ] 
@@ -18,7 +18,31 @@ fi
 cd $PBS_O_WORKDIR
 
 
+
+
+#Setup custom perl libs. Not used in Github version!!
+#Setup of perl variables. Not executed in github release!!
+
+source /home/dsarovich/.bashrc
+eval "$(perl -I/home/dsarovich/lib/perl5 -Mlocal::lib=/home/dsarovich)"
+
+PATH="/usr/bin/:$PATH"
+
+echo -e "Default perl used for assembly script\n"
+
+tmp=`which perl`
+echo $tmp
+
+echo -e "PERL5LIB priorities for perl libraries\n"
+echo $PERL5LIB
+
+echo -e "Default PATH variables\n"
+echo $PATH
+
+########################## used in github version from now on
+
 # function for running a command an testing for success
+
 
 log_eval() 
 {
@@ -51,6 +75,7 @@ if [ "$ref" != "none" ]; then
     contig_count=`grep -c '>' ${ref}.fasta`
 
     if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
+	echo -e "Joining contigs for ABACAS\n"
       log_eval $PBS_O_WORKDIR "perl $SCRIPTPATH/bin/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
     fi
     if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count == 1 ]; then
@@ -199,8 +224,8 @@ fi
 
 
 if [ -s $PBS_O_WORKDIR/tmp/${seq}/standard_output.summaryfile.txt ]; then
-  SSPACE_test=`grep 'Total number of N' standard_output.summaryfile.txt |tail -n1 |awk '{print $6}'`
-  if [ $SSPACE_test == 0 ]; then
+  SSPACE_test=`grep 'Total number of N' $PBS_O_WORKDIR/tmp/${seq}/standard_output.summaryfile.txt |tail -n1 |awk '{print $6}'`
+  if [ "$SSPACE_test" == 0 ]; then
    cp $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta
   fi
 fi
@@ -213,7 +238,6 @@ fi
 ###                                                                    ###
 ##########################################################################
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-   # echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > $PBS_O_WORKDIR/tmp/${seq}/Gapfiller.txt
     log_eval $PBS_O_WORKDIR/tmp/${seq}/ "perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s $PBS_O_WORKDIR/tmp/${seq}/${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
     mv $PBS_O_WORKDIR/tmp/${seq}/SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta
 	rm -rf $PBS_O_WORKDIR/tmp/${seq}/SSPACE_scaff/
@@ -221,34 +245,54 @@ fi
 
 ##########################################################################
 ###                                                                    ###
-###                             ICORN                                  ###
+###                Remove contigs <1kb and image cleanup               ###
 ###                                                                    ###
 ##########################################################################
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "no" ]; then
-  log_eval $PBS_O_WORKDIR/tmp/${seq}/ "$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn"
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta -a "$long" == "no" ]; then
+  log_eval $PBS_O_WORKDIR/tmp/${seq}/ "$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon"
   echo -e "Project has been filtered to remove contigs less than 1kb in size \n"
   
 fi
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta -a "$long" == "yes" ]; then
-    mv $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta
-	echo -e "Project includes all contigs including htose <1kb in size\n"
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta -a "$long" == "yes" ]; then
+    mv $PBS_O_WORKDIR/tmp/${seq}/${seq}_gap2.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta
+	echo -e "Project includes all contigs including <1kb in size\n"
 fi	
 
-if [ -d $PBS_O_WORKDIR/tmp/${seq}/ite12 -a -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_icorn.fasta ]; then
+if [ -d $PBS_O_WORKDIR/tmp/${seq}/ite12 -a -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta ]; then
   rm -rf $PBS_O_WORKDIR/tmp/${seq}/ite*
 fi
 
 
+##########################################################################
+###                                                                    ###
+###                                PILON                               ###
+###                                                                    ###
+##########################################################################
 
-###ICORN2
-#TO DO
-#include the NCPUS variable for icorn to utilise the multiple threads specified in the assembly section
-if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.3 -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
+#create bam file before running pilon
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta.bwt ]; then
+  log_eval $PBS_O_WORKDIR "$BWA index $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta"
+  else
+  echo "Found ref index for Pilon"
+fi
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}.sam ]; then
+    log_eval $PBS_O_WORKDIR "$BWA mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t 4 $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq > $PBS_O_WORKDIR/tmp/${seq}/${seq}.sam"
+  else
+    echo "Found bam file for pilon"  
+fi
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam ]; then
+  	    log_eval $PBS_O_WORKDIR "$SAMTOOLS view -h -b -@ 1 -q 1 -o $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam.tmp $PBS_O_WORKDIR/tmp/${seq}/${seq}.sam && $SAMTOOLS sort -@ 1 -o $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam.tmp"
+		rm "$PBS_O_WORKDIR/tmp/${seq}/${seq}.bam.tmp $PBS_O_WORKDIR/tmp/${seq}/${seq}.sam"
+fi
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam.bai ]; then
+    log_eval $PBS_O_WORKDIR "$SAMTOOLS index $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam"
+fi
 
- log_eval $PBS_O_WORKDIR/tmp/${seq} "perl $ICORN2_HOME/icorn2.sh ${seq} 300 ${seq}_icorn.fasta 1 3"
+if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/pilon.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
+  log_eval $PBS_O_WORKDIR/tmp/${seq} "$JAVA -jar $PILON --genome $PBS_O_WORKDIR/tmp/${seq}/${seq}_pilon.fasta --frags $PBS_O_WORKDIR/tmp/${seq}/${seq}.bam"
 fi 
-if [ -s $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.4 -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-mv $PBS_O_WORKDIR/tmp/${seq}/ICORN2.${seq}_icorn.fasta.4 ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta
+if [ -s $PBS_O_WORKDIR/tmp/${seq}/pilon.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
+  mv $PBS_O_WORKDIR/tmp/${seq}/pilon.fasta ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta
 fi
 
 ## cleanup

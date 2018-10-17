@@ -8,7 +8,9 @@ help()
 {
 cat << _EOF_
 
-Thanks for using MGAP!
+Thanks for using MGAP! 
+
+Version 1.1
 
 The Microbial Genome Assembler Pipeline (MGAP) is an automated assembly pipeline for paired-end Illumina data generated from microbial genomes.
 

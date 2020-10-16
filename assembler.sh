@@ -2,6 +2,9 @@
 
 
 
+
+
+
 source "$SCRIPTPATH"/MGAP.config
 source "$SCRIPTPATH"/velvet_optimiser.config
 source "$SCRIPTPATH"/scheduler.config
@@ -19,6 +22,7 @@ cd $PBS_O_WORKDIR
 
 #Setup custom perl libs. Not used in Github version!!
 #Setup of perl variables. Not executed in github release!!
+
 
 #source /home/dsarovich/.bashrc
 #eval "$(perl -I/home/dsarovich/lib/perl5 -Mlocal::lib=/home/dsarovich)"

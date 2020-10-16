@@ -23,21 +23,22 @@ cd $PBS_O_WORKDIR
 #Setup custom perl libs. Not used in Github version!!
 #Setup of perl variables. Not executed in github release!!
 
-source /home/dsarovich/.bashrc
-eval "$(perl -I/home/dsarovich/lib/perl5 -Mlocal::lib=/home/dsarovich)"
 
-PATH="/usr/bin/:$PATH"
+#source /home/dsarovich/.bashrc
+#eval "$(perl -I/home/dsarovich/lib/perl5 -Mlocal::lib=/home/dsarovich)"
 
-echo -e "Default perl used for assembly script\n"
+#PATH="/usr/bin/:$PATH"
 
-tmp=`which perl`
-echo $tmp
+#echo -e "Default perl used for assembly script\n"
 
-echo -e "PERL5LIB priorities for perl libraries\n"
-echo $PERL5LIB
+#tmp=`which perl`
+#echo $tmp
 
-echo -e "Default PATH variables\n"
-echo $PATH
+#echo -e "PERL5LIB priorities for perl libraries\n"
+#echo $PERL5LIB
+
+#echo -e "Default PATH variables\n"
+#echo $PATH
 
 ########################## used in github version from now on
 

@@ -2,7 +2,7 @@
 
 <i>What is MGAP?</i>
 
-MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that incorporates several genome assembly programs into one tool for high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.
+MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that runs an optimised Velvet assembly followed by gap filling and polishing to produce high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.
 
 <i>What resource managers can MGAP use?</i>
 
@@ -20,7 +20,9 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 - <b>ABACAS</b> [(Assefa et al., 2009)](http://bioinformatics.oxfordjournals.org/content/25/15/1968.long)
 - <b>IMAGE</b> [(Tsai et al., 2010)](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-4-r41)
 - <b>SSPACE</b> [(Boetzer et al., 2011)](http://bioinformatics.oxfordjournals.org/content/27/4/578.long)
+
 - <b>Pilon</b> [(Walker et al., 2014)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0112963)
+
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
 <i>How do I install MGAP?</i>
@@ -55,7 +57,8 @@ Next, a draft scaffold assembly is  created using Velvet 1.2.10, with parameters
 
 GapFiller v2.1.1 is then used to attempt to fill in the scaffolds created by Velvet. Following creation of the draft Velvet assemblies, the best assembly is then improved upon using ABACAS v1.3.1 and IMAGE v2.4.1. If the user provides a reference genome, ABACAS scaffolds the contigs against this reference. If no user-specified reference is provided, this ABACAS step is skipped. Scaffolded contigs are then attempted to be joined using IMAGE, which will break contigs that have been incorrectly joined. A second attempt is then made to scaffold contigs using SSPACE v3.0. GapFiller is then run again to attempt to fill in the scaffolds created by SSPACE. 
 
-Finally, Pilon corrects any insertion-deletion (indel) and SNP errors in the final assembly. Optionally, contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA v4. 
+
+Finally, Pilon v1.22 corrects any insertion-deletion (indel) and SNP errors in the final assembly. Contigs <1,000bp are excluded from the final .fasta assembly output using the miraconvert tool in MIRA v4. 
 
 <i>Who created MGAP?</i>
 

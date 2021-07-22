@@ -91,7 +91,7 @@ fi
 ##########################################################################
 
 if [ ! -s $PBS_O_WORKDIR/tmp/${seq}/${seq}_merged.fastq.gz -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-  log_eval $PBS_O_WORKDIR "$JAVA -jar $TRIM PE -phred33 -threads $NCPUS ${seq}_1_sequence.fastq.gz ${seq}_2_sequence.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz ILLUMINACLIP:$TRIM_DIR/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36" #comment out to remove TRIM step
+  log_eval $PBS_O_WORKDIR "$JAVA -jar $TRIM PE -phred33 -threads $NCPUS ${seq}_1_sequence.fastq.gz ${seq}_2_sequence.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz ILLUMINACLIP:$TRIM_DIR/adapters/all_adapters.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36" #comment out to remove TRIM step
   log_eval $PBS_O_WORKDIR "gunzip $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.fastq.gz" #TRIM specific
   log_eval $PBS_O_WORKDIR "gunzip $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.fastq.gz" #TRIM specific
   rm $PBS_O_WORKDIR/tmp/${seq}/${seq}_2.tmp.fastq.gz $PBS_O_WORKDIR/tmp/${seq}/${seq}_1.tmp.fastq.gz #TRIM specific

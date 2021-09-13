@@ -47,7 +47,7 @@ USAGE: MGAP.sh -r [reference, without .fasta extension] -s [specify single strai
 
 If you would prefer MGAP to perform assemblies without using a reference to assist or if no reference is available, set the -r flag to "none".
 
-MGAP expects reads to be paired-end Illumina data in the following format: STRAIN_1_sequence.fastq.gz (first pair) and STRAIN_2_sequence.fastq.gz (second pair).
+MGAP expects reads to be paired-end Illumina data in the following format: StrainOne_1_sequence.fastq.gz, StrainOne_2_sequence.fastq.gz (first pair) and StrainTwo_1_sequence.fastq.gz, StrainTwo_2_sequence.fastq.gz (second pair).
 
 <i>What does MGAP do?</i>
 

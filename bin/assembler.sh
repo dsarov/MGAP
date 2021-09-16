@@ -1,88 +1,15 @@
 #!/bin/bash
 
 
-
-
+seq=$1
+ref=$2
+baseDir=$3
 
 
 source "$SCRIPTPATH"/MGAP.config
 source "$SCRIPTPATH"/velvet_optimiser.config
 source "$SCRIPTPATH"/scheduler.config
 
-# sets the variable PBS_O_WORKDIR for non PBS systems
-if [ ! $PBS_O_WORKDIR ] 
-    then
-        PBS_O_WORKDIR="$seq_path"
-fi
-
-cd $PBS_O_WORKDIR
-
-
-
-
-#Setup custom perl libs. Not used in Github version!!
-#Setup of perl variables. Not executed in github release!!
-
-
-#source /home/dsarovich/.bashrc
-#eval "$(perl -I/home/dsarovich/lib/perl5 -Mlocal::lib=/home/dsarovich)"
-
-#PATH="/usr/bin/:$PATH"
-
-#echo -e "Default perl used for assembly script\n"
-
-#tmp=`which perl`
-#echo $tmp
-
-#echo -e "PERL5LIB priorities for perl libraries\n"
-#echo $PERL5LIB
-
-#echo -e "Default PATH variables\n"
-#echo $PATH
-
-########################## used in github version from now on
-
-# function for running a command an testing for success
-
-
-log_eval() 
-{
-  cd $1
-  echo -e "\nIn $1\n"
-  echo "Running: $2"
-  eval "$2"
-  status=$?
-
-  if [ ! $status == 0 ]; then
-    echo "Previous command returned error: $status"
-    exit 1
-  fi
-}
-
-if [ ! -d $PBS_O_WORKDIR/tmp ]; then
-    mkdir $PBS_O_WORKDIR/tmp
-fi
-if [ ! -d $PBS_O_WORKDIR/tmp/${seq} ]; then
-    mkdir $PBS_O_WORKDIR/tmp/${seq}
-fi
-
-
-##########################################################################
-###                                                                    ###
-###                           ABACAS REF                               ###
-###                                                                    ###
-##########################################################################
-if [ "$ref" != "none" ]; then
-    contig_count=`grep -c '>' ${ref}.fasta`
-
-    if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count -gt 1 ]; then
-	echo -e "Joining contigs for ABACAS\n"
-      log_eval $PBS_O_WORKDIR "perl $SCRIPTPATH/bin/joinMultifasta.pl $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta"
-    fi
-    if [ ! -s $PBS_O_WORKDIR/${ref}ABACAS.fasta -a $contig_count == 1 ]; then
-       ln -s $PBS_O_WORKDIR/${ref}.fasta $PBS_O_WORKDIR/${ref}ABACAS.fasta
-    fi
-fi
 
 ##########################################################################
 ###                                                                    ###

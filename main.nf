@@ -11,8 +11,8 @@
 
 log.info """
 ===============================================================================
-                           NF-ARDaP
-                             v1.8.2
+                           NF-MGAP
+                             v2.0
 ================================================================================
 
 Optional Parameters:
@@ -20,36 +20,6 @@ Optional Parameters:
     --fastq      Input PE read file wildcard (default: *_{1,2}.fastq.gz)
 
                  Currently this is set to $params.fastq
-
-    --species    Species specific database for resistance determination
-                 (default: Burkholderia_pseudomallei)
-
-                 Currently you are using $params.species
-
-    --assemblies Optionally include a directory of assembled genomes in the
-                 analysis. Set this parameter to 'true' if you wish to included
-                 assembled genomes and place all assembled genomes in a
-                 subdirectory called 'assemblies'. (default: false)
-
-                 Currently mixtures is set to $params.assemblies
-
-    --mixtures   Optionally perform within species mixtures analysis.
-                 Set this parameter to 'true' if you are dealing with
-                 multiple strains. (default: false)
-
-                 Currently mixtures is set to $params.mixtures
-
-    --size       ARDaP can optionally down-sample your read data to
-                 run through the pipeline quicker. (default: 1000000)
-
-                 Currently you are using $params.size
-
-    --phylogeny  Please include if you would like a whole genome
-                 phylogeny (FastTree2) and merged annotation files.
-                 Note that this may take some time if you have a large
-                 number of isolates (default: false)
-
-                 Currently phylogeny is set to $params.phylogeny
 
     --executor   Change this flag for running in a HPC scheduler environment.
                  Default behavior is to run without a scheduler but a
@@ -60,23 +30,17 @@ Optional Parameters:
 
                  Currently executor is set to $params.executor
 
-    --gwas       **Experimental**. If you have a database of GWAS co-ordinates
-                 ARDaP can interrogate SNPs and indels across the entire genome
-                 to identify novel mutations likely contributing to an antibiotic
-                 resistance phenotype. For more information about this feature,
-                 please contact the developers.
 
-                 Currently gwas is set to $params.gwas
 
 If you want to make changes to the default `nextflow.config` file
 clone the workflow into a local directory and change parameters
 in `nextflow.config`:
 
-    nextflow clone dsarov/ardap outdir/
+    nextflow clone dsarov/mgap outdir/
 
 Update to the local cache of this workflow:
 
-    nextflow pull dsarov/ardap
+    nextflow pull dsarov/mgap
 
 ==================================================================
 ==================================================================

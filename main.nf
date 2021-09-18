@@ -2,17 +2,17 @@
 
 /*
  *
- *  Pipeline            ARDaP
- *  Version             1.8.2
+ *  Pipeline            MGAP
+ *  Version             v2.0
  *  Description         Antimicrobial resistance detection and prediction from WGS
  *  Authors             Derek Sarovich, Erin Price, Danielle Madden, Eike Steinig
  *
  */
 
 log.info """
-===============================================================================
-                           NF-MGAP
-                             v2.0
+================================================================================
+                                    NF-MGAP
+                                     v2.0
 ================================================================================
 
 Optional Parameters:
@@ -20,7 +20,12 @@ Optional Parameters:
     --fastq      Input PE read file wildcard (default: *_{1,2}.fastq.gz)
 
                  Currently this is set to $params.fastq
-    --ref        ReferenceAlignment
+
+    --ref        Reference file used for reference assisted assembly using
+                 ABACAS. For best results please set this to a closely related
+                 reference (i.e. same species and sequence type is ideal)
+
+                 Currently ref is set to $params.reference
 
     --executor   Change this flag for running in a HPC scheduler environment.
                  Default behavior is to run without a scheduler but a
@@ -46,50 +51,24 @@ Update to the local cache of this workflow:
 ==================================================================
 ==================================================================
 """
-//find ref and species specific databases
-
-species=params.species
-database_config_file="${baseDir}/Databases/Database.config"
-ref_proc1="grep -w ${species} ${database_config_file}".execute()
-ref_proc2="cut -f3".execute()
-ref_proc1 | ref_proc2
-ref_proc2.waitFor()
-reftmp="${ref_proc2.text}"
-ref=reftmp.trim()
-
-database_proc1="grep -w ${species} ${database_config_file}".execute()
-database_proc2="cut -f2".execute()
-database_proc1 | database_proc2
-database_proc2.waitFor()
-databasetmp="${database_proc2.text}"
-database=databasetmp.trim()
-//println "${database}"
-//println "${ref}"
-
-params.reference="${baseDir}/Databases/${database}/${ref}"
-params.resistance_db="${baseDir}/Databases/${database}/${database}.db"
-params.card_db="${baseDir}/Databases/${database}/${database}_CARD.db"
-params.snpeff="${database}"
 
 fastq = Channel
   .fromFilePairs("${params.fastq}", flat: true)
 	.ifEmpty { exit 1, """ Input read files could not be found.
 Have you included the read files in the current directory and do they have the correct naming?
-With the parameters specified, ARDaP is looking for reads named ${params.fastq}.
+With the parameters specified, MGAP is looking for reads named ${params.fastq}.
 To fix this error either rename your reads to match this formatting or specify the desired format
-when initializing ARDaP e.g. --fastq "*_{1,2}_sequence.fastq.gz"
+when initializing MGAP e.g. --fastq "*_{1,2}_sequence.fastq.gz"
 
 """
 }
 
-reference_file = file(params.reference)
+reference_file = file(params.ref)
 if( !reference_file.exists() ) {
   exit 1, """
 ARDaP can't find the reference file.
-It is currently looking for this file --> ${params.reference}
-Please check that this reference exists here --> ${baseDir}/Databases/${database}/${ref}
-If this file doesn't exist either ARDaP is not configured to run with this reference/species
-or there was an error during the installation process and ARDaP needs to be re-installed
+It is currently looking for this file --> ${params.ref}
+If this file doesn't exist, please download and copy to the analysis dirrectory
 """
 }
 

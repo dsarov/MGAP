@@ -7,7 +7,7 @@ baseDir=$3
 NCPUS=$4
 
 
-VelvOpt="${baseDir}/bin/velvet_1.2.10/contrrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl"
+VelvOpt="${baseDir}/bin/velvet_1.2.10/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl"
 IMAGE="${baseDir}/bin/IMAGE_version2.4"
 
 ##starting and ending kmer for velvet optimiser
@@ -22,6 +22,9 @@ END_KMER=75
 ###                                                                    ###
 ##########################################################################
 
+gunzip ${seq}_1.fastq.gz
+gunzip ${seq}_2.fastq.gz
+$SHUFFLE ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
 
 echo -e "now running velvet optimiser with the following parameters\n"
 echo -e "starting kmer = $START_KMER\n"
@@ -37,10 +40,10 @@ mv ${seq}/velvTRIM/auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 ###                                                                    ###
 ##########################################################################
 
-    echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > ${seq}/Gapfiller.txt
-     ${seq}/ "perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s ${seq}/${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
-    mv ${seq}/Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}/${seq}_velvet.fasta
-	rm -rf ${seq}/Velv_scaff/
+echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > ${seq}/Gapfiller.txt
+perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s ${seq}/${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T $NCPUS -i 3 -b Velv_scaff
+mv ${seq}/Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}/${seq}_velvet.fasta
+rm -rf ${seq}/Velv_scaff/
 
 
 ##########################################################################
@@ -50,19 +53,17 @@ mv ${seq}/velvTRIM/auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 ##########################################################################
 
 if [ "$contig_count" != 1 -a "$ref" != "none" ]; then	
-    if [ ! -s ${seq}/${seq}mapped.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s ${seq}/${seq}_icorn.fasta -a ! -s ${seq}/${seq}_out.fasta ]; then
-       perl $ABACAS -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
-      echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
-      cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
-	fi
+  perl $ABACAS -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
+  cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
+
 if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
-    if [ ! -s ${seq}/${seq}mapped.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s ${seq}/${seq}_icorn.fasta -a ! -s ${seq}/${seq}_out.fasta ]; then
-       perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
-      echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
-      cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
-	fi
+  perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
+  cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
+
 if [ "$ref" == "none" ]; then
   mv ${seq}/${seq}_velvet.fasta ${seq}/${seq}mapnunmap.fasta
 fi
@@ -83,8 +84,8 @@ if [ ! -s ${seq}/${seq}_IMAGE2_out.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${s
    perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned
    perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned
    perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned
-   $mv ite21/new.fa ${seq}_IMAGE2_out.fasta"
-  # ${seq}/ite18 "perl $IMAGE/contigs2scaffolds.pl new.fa new.read.placed 300 500 scaffolds
+   $mv ite21/new.fa ${seq}_IMAGE2_out.fasta
+  # ${seq}/ite18 perl $IMAGE/contigs2scaffolds.pl new.fa new.read.placed 300 500 scaffolds
 
   perl $IMAGE/image_run_summary.pl ite > ${seq}/IMAGE2.summary
 
@@ -104,9 +105,6 @@ fi
 ###                                                                    ###
 ##########################################################################
 
-  
-if [ ! -s ${seq}/${seq}SSPACE.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-
   #TODO need to write SSPACE version check for different library file. The below is for SSPACEv3.0
   
   #echo -e "${seq}SSPACE\tbowtie\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > ${seq}/library.txt
@@ -114,7 +112,7 @@ if [ ! -s ${seq}/${seq}SSPACE.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_f
   #For SSPACE v2.0 basic
   echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > ${seq}/library.txt
   
-   ${seq} "perl $SSPACE -l ${seq}/library.txt -s ${seq}_IMAGE2_out.fasta"
+  perl $SSPACE -l ${seq}/library.txt -s ${seq}_IMAGE2_out.fasta
   mv ${seq}/standard_output.final.scaffolds.fasta ${seq}/${seq}SSPACE.fasta
   rm -rf ${seq}/pairinfo
   rm -rf ${seq}/intermediate_results
@@ -123,8 +121,6 @@ if [ ! -s ${seq}/${seq}SSPACE.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_f
   rm ${seq}/standard_output.final.evidence
   rm ${seq}/standard_output.logfile.txt
   #mv ${seq}/standard_output.summary.txt ${seq}/SSPACE.summary.txt ##standard_output.summaryfile.txt is the correct name for this output
-fi
-
 
 
 ### SSPACE test ############
@@ -204,12 +200,7 @@ if [ -s ${seq}/pilon.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fast
   mv ${seq}/pilon.fasta ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta
 fi
 
-## cleanup
 
-if [ -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-rm -rf ${PBS_O_WORKDIR}/tmp/${seq}
+
 exit 0
-else 
-exit 1
-fi
 

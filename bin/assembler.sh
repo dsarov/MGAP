@@ -4,6 +4,8 @@
 seq=$1
 ref=$2
 baseDir=$3
+NCPUS=$4
+
 
 VelvOpt="${baseDir}/bin/velvet_1.2.10/contrrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl"
 IMAGE="${baseDir}/bin/IMAGE_version2.4"

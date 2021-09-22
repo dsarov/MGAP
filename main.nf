@@ -133,8 +133,8 @@ process trimmomatic {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken
     else } {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
-      }
-    }
+     }
+
 
     """
     trimmomatic PE -threads $task.cpus ${forward} ${reverse} \

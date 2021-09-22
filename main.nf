@@ -120,7 +120,7 @@ process IndexReference {
 =======================================================================
 */
 
-process trimmomatic {
+process Trimmomatic {
 
     label "trimmomatic"
     tag {"$id"}
@@ -152,7 +152,7 @@ process trimmomatic {
 =======================================================================
 */
 if ($params.kraken) {
- process kraken {
+ process Kraken {
 
     label "kraken"
     tag {"$id"}
@@ -186,7 +186,7 @@ if ($params.kraken) {
 =======================================================================
 */
 
-process assembly {
+process Assembly {
 
   label "assembly"
   tag { "$id" }

@@ -86,8 +86,8 @@ If this file doesn't exist, please download and copy to the analysis dirrectory
       Part 1: create reference indices, dict files and bed files
 ======================================================================
 */
-
-process IndexReference {
+if ($params.reference) {
+  process IndexReference {
 
         label "index"
 
@@ -101,7 +101,6 @@ process IndexReference {
         file "${reference}.bed" into refcov_ch
 
         script:
-        if ($params.reference) {
         """
         contig_count=`grep -c '>' ${ref}.fasta`
         echo -e "Joining contigs for ABACAS\n"
@@ -111,7 +110,7 @@ process IndexReference {
           perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta"
         fi
         """
-    }
+  }
 }
 
 /*
@@ -122,7 +121,7 @@ process IndexReference {
 
 process Trimmomatic {
 
-    label "trimmomatic"
+    label "trimmomatic" 
     tag {"$id"}
 
     input:
@@ -132,11 +131,11 @@ process Trimmomatic {
 
     if ($params.kraken) {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken
-    else } {
+    } else {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
-     }
+    }
 
-
+    script:
     """
     trimmomatic PE -threads $task.cpus ${forward} ${reverse} \
     ${id}_1.fq.gz ${id}_1_u.fq.gz ${id}_2.fq.gz ${id}_2_u.fq.gz \
@@ -163,11 +162,12 @@ if ($params.kraken) {
     output:
     set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
 
+    script:
     """
     kraken2 --db ${KRAKEN_DB} --threads ${task.cpus} --use-names --output ${id}.output --paired ${id}_1.fq.gz ${id}_2.fq.gz
     while read line; do
       echo ${line} >> read.lst
-    done < <(grep "${params.kraken}" ${id}.output | awk '{ print $2 }')
+    done < <(grep "${params.kraken}" ${id}.output | awk '{ print \$2 }')
     seqtk subseq ${id}_1.fq.gz read.lst > out_1.fq
     seqtk subseq ${id}_2.fq.gz read.lst > out_2.fq
     gzip out_1.fq
@@ -205,7 +205,6 @@ process Assembly {
       script:
       """
       bash assemble.sh ${id} ${reference} ${baseDir}
-
       """
 
 }

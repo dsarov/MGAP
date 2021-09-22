@@ -100,7 +100,7 @@ if (params.ref) {
 
         script:
         """
-        contig_count=$(grep -c '>' ${ref}.fasta)
+        contig_count=`grep -c '>' ${ref}.fasta`
         echo -e "Joining contigs for ABACAS\n"
         if [ ${contig_count} == 1 ]; then
           mv ${ref}.fasta ${ref}ABACAS.fasta

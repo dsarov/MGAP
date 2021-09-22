@@ -129,11 +129,7 @@ process Trimmomatic {
 
     output:
 
-    if (params.kraken) {
-      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken
-    } else {
-      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
-    }
+      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken, assemble
 
     script:
     """

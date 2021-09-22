@@ -6,9 +6,19 @@ ref=$2
 baseDir=$3
 NCPUS=$4
 
+#testing
+baseDir=~/bin/mgap/
+NCPUS=23
+ref=Pa_PA01.fasta
+
+
 
 VelvOpt="${baseDir}/bin/velvet_1.2.10/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl"
+SHUFFLE="${baseDir}/bin/velvet_1.2.10/contrib/shuffleSequences_fasta/shuffleSequences_fasta.pl"
 IMAGE="${baseDir}/bin/IMAGE_version2.4"
+GAPFILLER="${baseDir}/bin/GapFiller_v1-10_linux-x86_64/GapFiller.pl"
+ABACAS="${baseDir}/bin/abacas.1.3.1.pl"
+
 
 ##starting and ending kmer for velvet optimiser
 START_KMER=53	
@@ -22,29 +32,29 @@ END_KMER=75
 ###                                                                    ###
 ##########################################################################
 
-gunzip ${seq}_1.fastq.gz
-gunzip ${seq}_2.fastq.gz
-$SHUFFLE ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
+gunzip -c ${seq}_1.fastq.gz > ${seq}_1.fastq
+gunzip -c ${seq}_2.fastq.gz > ${seq}_2.fastq
+perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
 
 echo -e "now running velvet optimiser with the following parameters\n"
 echo -e "starting kmer = $START_KMER\n"
 echo -e "ending kmer = $END_KMER\n"
-${VelvOpt} -o -scaffolding yes -min_contig_lgth 1000 -s $START_KMER -e $END_KMER -f -shortPaired -fastq.gz ${seq}_merged.fastq.gz -t $NCPUS
-mv ${seq}/velvTRIM/auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
+perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
+mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 
-
-
+perl $baseDir/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
 ##########################################################################
 ###                                                                    ###
 ###                            GAPFILLER                               ###
 ###                                                                    ###
 ##########################################################################
 
-echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > ${seq}/Gapfiller.txt
-perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s ${seq}/${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T $NCPUS -i 3 -b Velv_scaff
-mv ${seq}/Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}/${seq}_velvet.fasta
+#echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > Gapfiller.txt
+#GapFiller -seed1 ${seq}_1.fastq -seed2 ${seq}_1.fastq --seed-ins 500 -query ${seq}_velvet.scaff.fasta --output-prefix output_test
+$GAPFILLER -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
+mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
 rm -rf ${seq}/Velv_scaff/
-
+#TO DO need filecheck herrre for gapfiller
 
 ##########################################################################
 ###                                                                    ###
@@ -53,13 +63,13 @@ rm -rf ${seq}/Velv_scaff/
 ##########################################################################
 
 if [ "$contig_count" != 1 -a "$ref" != "none" ]; then	
-  perl $ABACAS -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  perl "$ABACAS" -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
 
 if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
-  perl $ABACAS -m -b -r $PBS_O_WORKDIR/${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  perl $ABACAS -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi

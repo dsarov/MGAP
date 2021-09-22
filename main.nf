@@ -27,6 +27,15 @@ Optional Parameters:
 
                  Currently ref is set to $params.reference
 
+    --kraken     Kraken2 can be used to filter raw sequence reads if multiple
+                 species contamination is suspected. To use this feature, please
+                 set this flag to a specific genus and/or species. E.g. to filter
+                 all reads that match Pseudomonas or "Pseudomonas aeruginosa". If
+                 specifying species, please use quotes to correctly handle the space
+                 between genus and species.
+
+                 Currrently kraken is set to $params.kraken
+
     --executor   Change this flag for running in a HPC scheduler environment.
                  Default behavior is to run without a scheduler but a
                  wide range of schedulers are supported with nextflow.
@@ -99,7 +108,7 @@ process IndexReference {
         if [ $contig_count == 1 ]; then
           mv ${ref}.fasta ${ref}ABACAS.fasta
         else
-          perl $baseDir/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta"
+          perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta"
         fi
         """
 }
@@ -112,7 +121,7 @@ process IndexReference {
 =======================================================================
 */
 
-process Trimmomatic {
+process trimmomatic {
 
     label "trimmomatic"
     tag {"$id"}
@@ -121,7 +130,13 @@ process Trimmomatic {
     set id, file(forward), file(reverse) from fastq
 
     output:
-    set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into downsample
+
+    if ($params.kraken) {
+      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken
+    else } {
+      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
+      }
+    }
 
     """
     trimmomatic PE -threads $task.cpus ${forward} ${reverse} \
@@ -134,20 +149,55 @@ process Trimmomatic {
 
 /*
 =======================================================================
-   Part 2A: Trim reads with light quality filter and remove adapters
+   Part 2B: Optionally filter reads for specific species
+=======================================================================
+*/
+if ($params.kraken) {
+ process kraken {
+
+    label "kraken"
+    tag {"$id"}
+
+    input:
+    set id, file(forward), file(reverse) from kraken
+
+    output:
+    set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
+
+    """
+    kraken2 --db ${KRAKEN_DB} --threads ${task.cpus} --use-names --output ${id}.output --paired ${id}_1.fq.gz ${id}_2.fq.gz
+    while read line; do
+      echo ${line} >> read.lst
+    done < <(grep "${params.kraken}" ${id}.output | awk '{ print $2 }')
+    seqtk subseq ${id}_1.fq.gz read.lst > out_1.fq
+    seqtk subseq ${id}_2.fq.gz read.lst > out_2.fq
+    gzip out_1.fq
+    gzip out_2.fq
+    rm ${id}_1.fq.gz ${id}_2.fq.gz
+    mv out_1.fq.gz ${id}_1.fq.gz
+    mv out_2.fq.gz ${id}_2.fq.gz
+    """
+ }
+}
+
+
+/*
+=======================================================================
+   Part 3: Run assembly script
 =======================================================================
 */
 
-process Assembly {
+process assembly {
 
-  label "Assembly"
+  label "assembly"
   tag { "$id" }
   publishDir "./Outputs/", mode: 'copy', pattern: "*final.fasta", overwrite: true
 
 
       input:
       file reference from reference_file
-      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" from downsample
+      set id, "${id}_1.fq.gz", "${id}_2.fq.gz" from assemble
+      file "ref.*" from ref_index_ch
 
       output:
       set id, file("${id}_final.fasta")

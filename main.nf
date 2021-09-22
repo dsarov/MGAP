@@ -113,8 +113,6 @@ process IndexReference {
         """
 }
 
-
-
 /*
 =======================================================================
    Part 2A: Trim reads with light quality filter and remove adapters
@@ -212,10 +210,6 @@ process assembly {
 }
 
 workflow.onComplete {
-	println ( workflow.success ? "\nDone! Result files are in --> ./Outputs\n \
-  Antibiotic resistance reports are in --> ./Outputs/AbR_reports\n \
-  If further analysis is required, bam alignments are in --> ./Outputs/bams\n \
-  Phylogenetic tree and annotated merged variants are in --> ./Outputs/Phylogeny_and_annotation\n \
-  Individual variant files are in --> ./Outputs/Variants/VCFs\n" \
+	println ( workflow.success ? "\nDone! Assembly files are in --> ./Outputs\n \
   : "Oops .. something went wrong" )
 }

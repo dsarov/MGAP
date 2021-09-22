@@ -129,7 +129,7 @@ process Trimmomatic {
 
     output:
 
-    if ($params.kraken) {
+    if (params.kraken) {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into kraken
     } else {
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" into assemble
@@ -150,7 +150,7 @@ process Trimmomatic {
    Part 2B: Optionally filter reads for specific species
 =======================================================================
 */
-if ($params.kraken) {
+if (params.kraken) {
  process Kraken {
 
     label "kraken"

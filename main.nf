@@ -121,7 +121,7 @@ if ($params.reference) {
 
 process Trimmomatic {
 
-    label "trimmomatic" 
+    label "trimmomatic"
     tag {"$id"}
 
     input:
@@ -207,9 +207,4 @@ process Assembly {
       bash assemble.sh ${id} ${reference} ${baseDir}
       """
 
-}
-
-workflow.onComplete {
-	println ( workflow.success ? "\nDone! Assembly files are in --> ./Outputs\n \
-  : "Oops .. something went wrong" )
 }

@@ -5,6 +5,8 @@ seq=$1
 ref=$2
 baseDir=$3
 NCPUS=$4
+long=$5
+
 
 #testing
 baseDir=~/bin/mgap/
@@ -18,12 +20,16 @@ SHUFFLE="${baseDir}/bin/velvet_1.2.10/contrib/shuffleSequences_fasta/shuffleSequ
 IMAGE="${baseDir}/bin/IMAGE_version2.4"
 GAPFILLER="${baseDir}/bin/GapFiller_v1-10_linux-x86_64/GapFiller.pl"
 ABACAS="${baseDir}/bin/abacas.1.3.1.pl"
+SSPACE="${baseDir}/bin/SSPACE-BASIC-2.0_linux-x86_64/SSPACE_Basic_v2.0.pl";
+CONVERT_PROJECT="${baseDir}/bin/convert_project";
+PILON="java -jar ${baseDir}/bin/pilon/pilon-1.24.jar"
 
-
+export PERL5LIB=/home/dsarovich/.cpan/build/Perl4-CoreLibs-0.004-0/lib/
 ##starting and ending kmer for velvet optimiser
 START_KMER=53	
 END_KMER=75
 
+#need to add chmod +x -r ./mgap/
 
 ##########################################################################
 ###                                                                    ###
@@ -51,10 +57,10 @@ perl $baseDir/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
 
 #echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > Gapfiller.txt
 #GapFiller -seed1 ${seq}_1.fastq -seed2 ${seq}_1.fastq --seed-ins 500 -query ${seq}_velvet.scaff.fasta --output-prefix output_test
-$GAPFILLER -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
+perl $GAPFILLER -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
 mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
 rm -rf ${seq}/Velv_scaff/
-#TO DO need filecheck herrre for gapfiller
+#TO DO need filecheck here for gapfiller
 
 ##########################################################################
 ###                                                                    ###
@@ -94,19 +100,13 @@ if [ ! -s ${seq}/${seq}_IMAGE2_out.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${s
    perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned
    perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned
    perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned
-   $mv ite21/new.fa ${seq}_IMAGE2_out.fasta
-  # ${seq}/ite18 perl $IMAGE/contigs2scaffolds.pl new.fa new.read.placed 300 500 scaffolds
+   mv ite21/new.fa ${seq}_IMAGE2_out.fasta
 
-  perl $IMAGE/image_run_summary.pl ite > ${seq}/IMAGE2.summary
+  perl $IMAGE/image_run_summary.pl ite > IMAGE2.summary
 
- # mv ${seq}/ite18/scaffolds.fa ${seq}/${seq}_IMAGE2_out.fasta
-  ## there are no quality control steps here to determine the best assembly. The program assumes that ite15 contains the best assembly.
-  ## For Bp this is probably the case but may differ with other organisms  
- rm -rf ${seq}/ite*
- rm ${seq}/partitioned_1.fastq
- rm ${seq}/partitioned_2.fastq
- rm ${seq}/image.read.placed
- rm ${seq}/image.contigs.fa
+ rm -r ite*
+ rm partitioned_1.fastq
+ rm partitioned_2.fastq
 fi  
 
 ##########################################################################
@@ -120,16 +120,16 @@ fi
   #echo -e "${seq}SSPACE\tbowtie\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > ${seq}/library.txt
   
   #For SSPACE v2.0 basic
-  echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > ${seq}/library.txt
+  echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > library.txt
   
-  perl $SSPACE -l ${seq}/library.txt -s ${seq}_IMAGE2_out.fasta
-  mv ${seq}/standard_output.final.scaffolds.fasta ${seq}/${seq}SSPACE.fasta
-  rm -rf ${seq}/pairinfo
-  rm -rf ${seq}/intermediate_results
-  rm -rf ${seq}/bowtieoutput
-  rm -rf ${seq}/reads
-  rm ${seq}/standard_output.final.evidence
-  rm ${seq}/standard_output.logfile.txt
+  perl $SSPACE -l library.txt -s ${seq}_IMAGE2_out.fasta
+  mv standard_output.final.scaffolds.fasta ${seq}SSPACE.fasta
+  rm -r pairinfo
+  rm -r intermediate_results
+  rm -r bowtieoutput
+  rm -r reads
+  rm standard_output.final.evidence
+  rm standard_output.logfile.txt
   #mv ${seq}/standard_output.summary.txt ${seq}/SSPACE.summary.txt ##standard_output.summaryfile.txt is the correct name for this output
 
 
@@ -138,10 +138,10 @@ fi
 
 
 
-if [ -s ${seq}/standard_output.summaryfile.txt ]; then
-  SSPACE_test=`grep 'Total number of N' ${seq}/standard_output.summaryfile.txt |tail -n1 |awk '{print $6}'`
+if [ -s standard_output.summaryfile.txt ]; then
+  SSPACE_test=`grep 'Total number of N' standard_output.summaryfile.txt |tail -n1 |awk '{print $6}'`
   if [ "$SSPACE_test" == 0 ]; then
-   cp ${seq}/${seq}SSPACE.fasta ${seq}/${seq}_gap2.fasta
+   cp ${seq}SSPACE.fasta ${seq}_gap2.fasta
   fi
 fi
 
@@ -152,10 +152,10 @@ fi
 ###  This step is skipped is SSPACE doesn't find anything to scaffold  ###
 ###                                                                    ###
 ##########################################################################
-if [ ! -s ${seq}/${seq}_gap2.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-     ${seq}/ "perl $GAPFILLER/GapFiller.pl -l Gapfiller.txt -s ${seq}/${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
-    mv ${seq}/SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa ${seq}/${seq}_gap2.fasta
-	rm -rf ${seq}/SSPACE_scaff/
+if [ ! -s ${seq}_gap2.fasta ]; then
+  perl $GAPFILLER -l Gapfiller.txt -s ${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff
+    mv SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa ${seq}_gap2.fasta
+	rm -r SSPACE_scaff/
 fi
 
 ##########################################################################
@@ -163,20 +163,13 @@ fi
 ###                Remove contigs <1kb and image cleanup               ###
 ###                                                                    ###
 ##########################################################################
-if [ ! -s ${seq}/${seq}_pilon.fasta -a "$long" == "no" ]; then
-   $CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}/${seq}_gap2.fasta ${seq}/${seq}_pilon
-  echo -e "Project has been filtered to remove contigs less than 1kb in size \n"
-  
+if [ "$long" == "no" ]; then
+  $CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}_gap2.fasta ${seq}_pilon
+  echo -e "Project has been filtered to remove contigs less than 1kb in size \n" 
+else 
+  mv ${seq}_gap2.fasta ${seq}_pilon.fasta
+  echo -e "Project includes all contigs including <1kb in size\n" 
 fi
-if [ ! -s ${seq}/${seq}_pilon.fasta -a "$long" == "yes" ]; then
-    mv ${seq}/${seq}_gap2.fasta ${seq}/${seq}_pilon.fasta
-	echo -e "Project includes all contigs including <1kb in size\n"
-fi	
-
-if [ -d ${seq}/ite12 -a -s ${seq}/${seq}_pilon.fasta ]; then
-  rm -rf ite*
-fi
-
 
 ##########################################################################
 ###                                                                    ###
@@ -185,32 +178,28 @@ fi
 ##########################################################################
 
 #create bam file before running pilon
-if [ ! -s ${seq}/${seq}_pilon.fasta.bwt ]; then
-  bwa index ${seq}/${seq}_pilon.fasta
+if [ ! -s ${seq}_pilon.fasta.bwt ]; then
+  bwa index ${seq}_pilon.fasta
   else
   echo "Found ref index for Pilon"
 fi
-if [ ! -s ${seq}/${seq}.sam ]; then
-    bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t 4 ${seq}/${seq}_pilon.fasta ${seq}/${seq}_1.fastq ${seq}/${seq}_2.fastq > ${seq}/${seq}.sam
+if [ ! -s ${seq}.sam ]; then
+    bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t $NCPUS ${seq}_pilon.fasta ${seq}_1.fastq ${seq}_2.fastq > ${seq}.sam
   else
     echo "Found bam file for pilon"  
 fi
-if [ ! -s ${seq}/${seq}.bam ]; then
+if [ ! -s ${seq}.bam ]; then
   	    samtools view -h -b -@ 1 -q 1 -o ${seq}.bam.tmp ${seq}.sam && samtools sort -@ 1 -o ${seq}.bam ${seq}.bam.tmp
 		rm ${seq}.bam.tmp ${seq}.sam
 fi
-if [ ! -s ${seq}/${seq}.bam.bai ]; then
-    samtools index ${seq}/${seq}.bam
+if [ ! -s ${seq}.bam.bai ]; then
+    samtools index ${seq}.bam
 fi
 
-if [ ! -s ${seq}/pilon.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-   $JAVA -jar pilon --genome ${seq}/${seq}_pilon.fasta --frags ${seq}/${seq}.bam
+if [ ! -s pilon.fasta ]; then
+   java -jar ${PILON} --genome ${seq}_pilon.fasta --frags ${seq}.bam
+   mv pilon.fasta ${seq}_final.fasta
 fi 
-if [ -s ${seq}/pilon.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta ]; then
-  mv ${seq}/pilon.fasta ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta
-fi
-
-
 
 exit 0
 

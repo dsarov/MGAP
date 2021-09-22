@@ -101,7 +101,7 @@ process IndexReference {
         file "${reference}.bed" into refcov_ch
 
         script:
-        if (ref!="none") {
+        if ($params.reference) {
         """
         contig_count=`grep -c '>' ${ref}.fasta`
         echo -e "Joining contigs for ABACAS\n"

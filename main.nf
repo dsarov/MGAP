@@ -25,7 +25,7 @@ Optional Parameters:
                  ABACAS. For best results please set this to a closely related
                  reference (i.e. same species and sequence type is ideal)
 
-                 Currently ref is set to $params.reference
+                 Currently ref is set to $params.ref
 
     --kraken     Kraken2 can be used to filter raw sequence reads if multiple
                  species contamination is suspected. To use this feature, please
@@ -86,7 +86,7 @@ If this file doesn't exist, please download and copy to the analysis dirrectory
       Part 1: create reference indices, dict files and bed files
 ======================================================================
 */
-if ($params.reference) {
+if (params.ref) {
   process IndexReference {
 
         label "index"
@@ -204,7 +204,7 @@ process Assembly {
 
       script:
       """
-      bash assemble.sh ${id} ${reference} ${baseDir}
+      bash assemble.sh ${id} ${reference} ${baseDir} $task.cpus no
       """
 
 }

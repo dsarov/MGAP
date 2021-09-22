@@ -9,9 +9,9 @@ long=$5
 
 
 #testing
-baseDir=~/bin/mgap/
-NCPUS=23
-ref=Pa_PA01.fasta
+#baseDir=~/bin/mgap/
+#NCPUS=23
+#ref=Pa_PA01.fasta
 
 
 

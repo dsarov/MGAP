@@ -13,17 +13,6 @@ long=$5
 #NCPUS=23
 #ref=Pa_PA01.fasta
 
-
-
-VelvOpt="${baseDir}/bin/velvet_1.2.10/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl"
-SHUFFLE="${baseDir}/bin/velvet_1.2.10/contrib/shuffleSequences_fasta/shuffleSequences_fasta.pl"
-IMAGE="${baseDir}/bin/IMAGE_version2.4"
-GAPFILLER="${baseDir}/bin/GapFiller_v1-10_linux-x86_64/GapFiller.pl"
-ABACAS="${baseDir}/bin/abacas.1.3.1.pl"
-SSPACE="${baseDir}/bin/SSPACE-BASIC-2.0_linux-x86_64/SSPACE_Basic_v2.0.pl";
-CONVERT_PROJECT="${baseDir}/bin/convert_project";
-PILON="java -jar ${baseDir}/bin/pilon/pilon-1.24.jar"
-
 export PERL5LIB=/home/dsarovich/.cpan/build/Perl4-CoreLibs-0.004-0/lib/
 ##starting and ending kmer for velvet optimiser
 START_KMER=53	
@@ -48,7 +37,7 @@ echo -e "ending kmer = $END_KMER\n"
 perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
 mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 
-perl $baseDir/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
+perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
 ##########################################################################
 ###                                                                    ###
 ###                            GAPFILLER                               ###
@@ -57,7 +46,7 @@ perl $baseDir/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
 
 #echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > Gapfiller.txt
 #GapFiller -seed1 ${seq}_1.fastq -seed2 ${seq}_1.fastq --seed-ins 500 -query ${seq}_velvet.scaff.fasta --output-prefix output_test
-perl $GAPFILLER -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
+perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
 mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
 rm -rf ${seq}/Velv_scaff/
 #TO DO need filecheck here for gapfiller

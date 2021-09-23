@@ -44,15 +44,19 @@ echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s
 perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
 mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 
-perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta
 ##########################################################################
 ###                                                                    ###
 ###                            GAPFILLER                               ###
 ###                                                                    ###
 ##########################################################################
 
+echo "Running gapfiller"
+echo "Creating library file"
+echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR"
 echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > Gapfiller.txt
-#GapFiller -seed1 ${seq}_1.fastq -seed2 ${seq}_1.fastq --seed-ins 500 -query ${seq}_velvet.scaff.fasta --output-prefix output_test
+
+echo "command=perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
+
 perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
 mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
 rm -rf ${seq}/Velv_scaff/

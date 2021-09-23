@@ -6,7 +6,7 @@ baseDir=$2
 NCPUS=$3
 long=$4
 
-source ${baseDir}/configs/nextflow_dependencies.config
+source ${baseDir}/configs/dependencies.config
 #testing
 #baseDir=~/bin/mgap/
 #NCPUS=23

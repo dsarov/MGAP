@@ -96,7 +96,6 @@ if (params.ref) {
 
         output:
         file "ref.*" into ref_index_ch
-        file "${reference}.fai" into ref_fai_ch1
 
         """
         contig_count=\$(grep -c '>' ${ref})

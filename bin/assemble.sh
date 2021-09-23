@@ -41,7 +41,7 @@ echo -e "ending kmer = $END_KMER\n"
 
 echo "running velvet optimiser"
 echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS"
-perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS
+perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
 mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 
 perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta

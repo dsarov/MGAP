@@ -32,12 +32,15 @@ echo "done"
 
 
 echo "Shuffling sequences"
-echo "running perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq"
+echo "command = perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq\n"
 perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
 
 echo -e "now running velvet optimiser with the following parameters\n"
 echo -e "starting kmer = $START_KMER\n"
 echo -e "ending kmer = $END_KMER\n"
+
+echo "running velvet optimiser"
+echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS"
 perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS
 mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
 

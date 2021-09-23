@@ -99,12 +99,12 @@ if (params.ref) {
         file "${reference}.fai" into ref_fai_ch1
 
         """
-        contig_count=\$(grep -c '>' ${ref}.fasta)
+        contig_count=\$(grep -c '>' ${ref})
         echo -e "Joining contigs for ABACAS\n"
         if [ \${contig_count} == 1 ]; then
-          mv ${ref}.fasta ${ref}ABACAS.fasta
+          mv ${ref} ${ref}.ABACAS
         else
-          perl ${baseDir}/bin/joinMultifasta.pl ${ref}.fasta ${ref}ABACAS.fasta"
+          perl ${baseDir}/bin/joinMultifasta.pl ${ref} ${ref}.ABACAS
         fi
         """
   }

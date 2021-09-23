@@ -25,9 +25,14 @@ END_KMER=75
 ###                             WITH TRIMMED                           ###
 ###                                                                    ###
 ##########################################################################
-
+echo "Unzipping reads"
 gunzip -c ${seq}_1.fq.gz > ${seq}_1.fastq
 gunzip -c ${seq}_2.fq.gz > ${seq}_2.fastq
+echo "done"
+
+
+echo "Shuffling sequences"
+echo "running perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq"
 perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
 
 echo -e "now running velvet optimiser with the following parameters\n"

@@ -102,9 +102,9 @@ if (params.ref) {
         contig_count=\$(grep -c '>' ${ref})
         echo -e "Joining contigs for ABACAS\n"
         if [ \${contig_count} == 1 ]; then
-          mv ${ref} ${ref}.ABACAS
+          mv ${ref} ref.ABACAS
         else
-          perl ${baseDir}/bin/joinMultifasta.pl ${ref} ${ref}.ABACAS
+          perl ${baseDir}/bin/joinMultifasta.pl ${ref} ref.ABACAS
         fi
         """
   }
@@ -189,7 +189,7 @@ process Assembly {
       input:
       file reference from reference_file
       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" from assemble
-      file "ref.*" from ref_index_ch
+      file "ref.ABACAS" from ref_index_ch
 
       output:
       set id, file("${id}_final.fasta")
@@ -197,7 +197,7 @@ process Assembly {
 
       script:
       """
-      bash assemble.sh ${id} ${reference} ${baseDir} $task.cpus no
+      bash assemble.sh ${id} ${baseDir} $task.cpus no
       """
 
 }

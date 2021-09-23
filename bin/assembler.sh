@@ -2,10 +2,9 @@
 
 
 seq=$1
-ref=$2
-baseDir=$3
-NCPUS=$4
-long=$5
+baseDir=$2
+NCPUS=$3
+long=$4
 
 
 #testing

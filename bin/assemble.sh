@@ -100,7 +100,7 @@ fi
 ##########################################################################
 
 ## include test for PAGIT assembly
-if [ ! -s ${seq}_IMAGE2_out.fasta -a ! -s ${seq}_final.fasta -a ! -s${seq}_icorn.fasta ]; then
+
   echo "command=perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81"
    perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81
    echo "command=perl $IMAGE/restartIMAGE.pl ite3 71 3 partitioned"
@@ -123,7 +123,7 @@ if [ ! -s ${seq}_IMAGE2_out.fasta -a ! -s ${seq}_final.fasta -a ! -s${seq}_icorn
  rm -r ite*
  rm partitioned_1.fastq
  rm partitioned_2.fastq
-fi  
+  
 
 ##########################################################################
 ###                                                                    ###

@@ -1,5 +1,10 @@
 # MGAP
 
+MGAP has been updated to version 2.0 with Nextflow integration for job management. Installation and running the pipeline is now slightly different than previous versions.
+
+<i>MGAP Installation (post version 2.0)</i>
+MGAP has a large number of dependencies that need to be installed prior to running the pipeline. 
+
 <i>What is MGAP?</i>
 
 MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that runs an optimised Velvet assembly followed by gap filling and polishing to produce high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.
@@ -25,7 +30,7 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
-<i>How do I install MGAP?</i>
+<i>How do I install MGAP (prior to version 2.0)?</i>
 
 1) Download or clone the MGAP git repository. 
 

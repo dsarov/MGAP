@@ -61,6 +61,8 @@ perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.
 
 if [ -s Velv_scaff/Velv_scaff.gapfilled.final.fa ]; then
   mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
+else
+  mv ${seq}_velvet.scaff.fasta ${seq}_velvet.fasta
 fi
 
 rm -rf ./Velv_scaff/
@@ -72,20 +74,22 @@ rm -rf ./Velv_scaff/
 ###                                                                    ###
 ##########################################################################
 
-if [ "$contig_count" != 1 -a "$ref" != "none" ]; then	
-  perl "$ABACAS" -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+if [ "$contig_count" != 1 -a "$ref" != "none" ]; then
+  echo "command=perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
+  perl ${ABACAS} -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
 
 if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
-  perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  echo "command=perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
+  perl ${ABACAS} -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
 
 if [ "$ref" == "none" ]; then
-  mv ${seq}/${seq}_velvet.fasta ${seq}/${seq}mapnunmap.fasta
+  mv ${seq}_velvet.fasta ${seq}mapnunmap.fasta
 fi
 
 
@@ -96,14 +100,22 @@ fi
 ##########################################################################
 
 ## include test for PAGIT assembly
-if [ ! -s ${seq}/${seq}_IMAGE2_out.fasta -a ! -s ${PBS_O_WORKDIR}/Assemblies/${seq}_final.fasta -a ! -s ${seq}/${seq}_icorn.fasta ]; then
+if [ ! -s ${seq}_IMAGE2_out.fasta -a ! -s ${seq}_final.fasta -a ! -s${seq}_icorn.fasta ]; then
+  echo "command=perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81"
    perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81
+   echo "command=perl $IMAGE/restartIMAGE.pl ite3 71 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite3 71 3 partitioned
+   echo "command=perl $IMAGE/restartIMAGE.pl ite6 61 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite6 61 3 partitioned
+   echo "command=perl $IMAGE/restartIMAGE.pl ite9 51 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite9 51 3 partitioned
+   echo "command=perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned
+   echo "command=perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned
+   echo "command=perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned"
    perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned
+   
    mv ite21/new.fa ${seq}_IMAGE2_out.fasta
 
   perl $IMAGE/image_run_summary.pl ite > IMAGE2.summary

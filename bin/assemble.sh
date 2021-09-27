@@ -58,8 +58,12 @@ echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" >
 echo "command=perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
 
 perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
-mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
-rm -rf ${seq}/Velv_scaff/
+
+if [ -s Velv_scaff/Velv_scaff.gapfilled.final.fa ]; then
+  mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
+fi
+
+rm -rf ./Velv_scaff/
 #TO DO need filecheck here for gapfiller
 
 ##########################################################################
@@ -69,13 +73,13 @@ rm -rf ${seq}/Velv_scaff/
 ##########################################################################
 
 if [ "$contig_count" != 1 -a "$ref" != "none" ]; then	
-  perl "$ABACAS" -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  perl "$ABACAS" -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi
 
 if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
-  perl $ABACAS -m -b -r ${ref}ABACAS.fasta -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
+  perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
   echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
   cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
 fi

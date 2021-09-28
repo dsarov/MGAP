@@ -3,7 +3,22 @@
 MGAP has been updated to version 2.0 with Nextflow integration for job management. Installation and running the pipeline is now slightly different than previous versions.
 
 <i>MGAP Installation (post version 2.0)</i>
-MGAP has a large number of dependencies that need to be installed prior to running the pipeline. 
+
+MGAP has a large number of dependencies that need to be installed prior to running the pipeline and there are a number of tools shipped with the pipeline itself. To install MGAP, first download the github repository into a local directory called mgap.
+
+```git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git ./mgap```
+
+Add execute permissions for the tools shipped with MGAP
+
+```chmod -R +x ./mgap/*```
+
+Install the environment with Conda
+
+```conda env create --name mgap -f ./mgap/env.yaml```
+
+To run the pipeline, copy (or link) paired-end Illumina reads into a owkring directory and (optionally) suppy a closely related reference for scaffolding. The main section of the pipeline can be run by:
+
+```nextflow run /path_to_mgap/main.nf```
 
 <i>What is MGAP?</i>
 

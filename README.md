@@ -24,6 +24,10 @@ And then the main section of the pipeline can be run by:
 
 ```nextflow run /path_to_mgap/main.nf```
 
+<i>Nextflow Integration</i>
+
+As of version 2.0, MGAP utilises nextflow for job management. This means that pipeline management is now slightly different to previous versions. Cluster options and pipeline options are now set in the nextflow.config file. Multiple job management systems are now supported (e.g. SGE, slurm, PBS etc) and can be specified by the ```--executor``` flag in the pipeline. The pipeline can now be resumed by the use of the ```-resume``` flag when initiating the pipeline.  
+
 <i>What is MGAP?</i>
 
 MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that runs an optimised Velvet assembly followed by gap filling and polishing to produce high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.

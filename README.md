@@ -16,7 +16,11 @@ Install the environment with Conda
 
 ```conda env create --name mgap -f ./mgap/env.yaml```
 
-To run the pipeline, copy (or link) paired-end Illumina reads into a owkring directory and (optionally) suppy a closely related reference for scaffolding. The main section of the pipeline can be run by:
+To run the pipeline, copy (or link) paired-end Illumina reads into a working directory and (optionally) suppy a closely related reference for scaffolding. Activate the MGAP environment in Conda 
+
+```conda activate mgap```
+
+And then the main section of the pipeline can be run by:
 
 ```nextflow run /path_to_mgap/main.nf```
 

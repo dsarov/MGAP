@@ -213,6 +213,7 @@ if [ ! -s ${seq}.bam ]; then
 		rm ${seq}.bam.tmp ${seq}.sam
 fi
 if [ ! -s ${seq}.bam.bai ]; then
+    echo "command=samtools index ${seq}.bam"
     samtools index ${seq}.bam
 fi
 

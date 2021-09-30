@@ -137,7 +137,7 @@ fi
   
   #For SSPACE v2.0 basic
   echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > library.txt
-  
+  echo "command=perl $SSPACE -l library.txt -s ${seq}_IMAGE2_out.fasta"
   perl $SSPACE -l library.txt -s ${seq}_IMAGE2_out.fasta
   mv standard_output.final.scaffolds.fasta ${seq}SSPACE.fasta
   rm -r pairinfo
@@ -169,6 +169,7 @@ fi
 ###                                                                    ###
 ##########################################################################
 if [ ! -s ${seq}_gap2.fasta ]; then
+  echo "command=perl $GAPFILLER -l Gapfiller.txt -s ${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
   perl $GAPFILLER -l Gapfiller.txt -s ${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff
     mv SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa ${seq}_gap2.fasta
 	rm -r SSPACE_scaff/
@@ -180,6 +181,7 @@ fi
 ###                                                                    ###
 ##########################################################################
 if [ "$long" == "no" ]; then
+  echo "command=$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}_gap2.fasta ${seq}_pilon"
   $CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}_gap2.fasta ${seq}_pilon
   echo -e "Project has been filtered to remove contigs less than 1kb in size \n" 
 else 
@@ -200,11 +202,13 @@ if [ ! -s ${seq}_pilon.fasta.bwt ]; then
   echo "Found ref index for Pilon"
 fi
 if [ ! -s ${seq}.sam ]; then
+    echo "command=bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t $NCPUS ${seq}_pilon.fasta ${seq}_1.fastq ${seq}_2.fastq > ${seq}.sam"
     bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t $NCPUS ${seq}_pilon.fasta ${seq}_1.fastq ${seq}_2.fastq > ${seq}.sam
   else
     echo "Found bam file for pilon"  
 fi
 if [ ! -s ${seq}.bam ]; then
+        echo "command=samtools view -h -b -@ 1 -q 1 -o ${seq}.bam.tmp ${seq}.sam && samtools sort -@ 1 -o ${seq}.bam ${seq}.bam.tmp"
   	    samtools view -h -b -@ 1 -q 1 -o ${seq}.bam.tmp ${seq}.sam && samtools sort -@ 1 -o ${seq}.bam ${seq}.bam.tmp
 		rm ${seq}.bam.tmp ${seq}.sam
 fi
@@ -213,6 +217,7 @@ if [ ! -s ${seq}.bam.bai ]; then
 fi
 
 if [ ! -s pilon.fasta ]; then
+   echo "command=java -jar ${PILON} --genome ${seq}_pilon.fasta --frags ${seq}.bam"
    java -jar ${PILON} --genome ${seq}_pilon.fasta --frags ${seq}.bam
    mv pilon.fasta ${seq}_final.fasta
 fi 

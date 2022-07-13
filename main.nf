@@ -85,7 +85,7 @@ if (params.ref) {
 
 /*
 ======================================================================
-      Part 1: create reference indices, dict files and bed files
+      Part 1: join multifasta file into single contig
 ======================================================================
 */
 if (params.ref) {
@@ -179,8 +179,8 @@ if (params.kraken) {
    Part 3: Run assembly script
 =======================================================================
 */
-
-process Assembly {
+if (params.ref) {
+ process Assembly {
 
   label "assembly"
   tag { "$id" }
@@ -200,5 +200,27 @@ process Assembly {
       """
       bash assemble.sh ${id} ${baseDir} $task.cpus no
       """
+
+}
+} else {
+  process Assembly_no_ref {
+
+   label "assembly"
+   tag { "$id" }
+   publishDir "./Outputs/", mode: 'copy', pattern: "*final.fasta", overwrite: true
+
+
+       input:
+       set id, "${id}_1.fq.gz", "${id}_2.fq.gz" from assemble
+       file "ref.ABACAS" from ref_index_ch
+
+       output:
+       set id, file("${id}_final.fasta")
+
+
+       script:
+       """
+       bash assemble.sh ${id} ${baseDir} $task.cpus no
+       """
 
 }

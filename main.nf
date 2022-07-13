@@ -223,4 +223,5 @@ if (params.ref) {
        bash assemble.sh ${id} ${baseDir} $task.cpus no none
        """
 
+ }
 }

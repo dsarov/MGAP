@@ -212,7 +212,6 @@ if (params.ref) {
 
        input:
        set id, "${id}_1.fq.gz", "${id}_2.fq.gz" from assemble
-       file "ref.ABACAS" from ref_index_ch
 
        output:
        set id, file("${id}_final.fasta")

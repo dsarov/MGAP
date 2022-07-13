@@ -6,7 +6,7 @@ MGAP has been updated to version 2.0 with Nextflow integration for job managemen
 
 MGAP has a large number of dependencies that need to be installed prior to running the pipeline and there are a number of tools shipped with the pipeline itself. To install MGAP, first download the github repository into a local directory called mgap.
 
-```git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git ./mgap```
+```git clone https://github.com/dsarov/MGAP.git ./mgap```
 
 Add execute permissions for the tools shipped with MGAP
 

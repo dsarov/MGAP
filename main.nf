@@ -4,15 +4,15 @@
  *
  *  Pipeline            MGAP
  *  Version             v2.0
- *  Description         Antimicrobial resistance detection and prediction from WGS
- *  Authors             Derek Sarovich, Erin Price, Danielle Madden, Eike Steinig
+ *  Description         Microbial Genome Assembly Pipeline
+ *  Authors             Derek Sarovich, Erin Price,
  *
  */
 
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v2.0
+                                     v2.1
 ================================================================================
 
 Optional Parameters:
@@ -72,13 +72,15 @@ when initializing MGAP e.g. --fastq "*_{1,2}_sequence.fastq.gz"
 """
 }
 
-reference_file = file(params.ref)
-if( !reference_file.exists() ) {
-  exit 1, """
-ARDaP can't find the reference file.
-It is currently looking for this file --> ${params.ref}
-If this file doesn't exist, please download and copy to the analysis dirrectory
-"""
+if (params.ref) {
+  reference_file = file(params.ref)
+  if( !reference_file.exists() ) {
+    exit 1, """
+  ARDaP can't find the reference file.
+  It is currently looking for this file --> ${params.ref}
+  If this file doesn't exist, please download and copy to the analysis dirrectory
+  """
+  }
 }
 
 /*

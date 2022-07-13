@@ -220,7 +220,7 @@ if (params.ref) {
 
        script:
        """
-       bash assemble.sh ${id} ${baseDir} $task.cpus no
+       bash assemble.sh ${id} ${baseDir} $task.cpus no none
        """
 
 }

@@ -5,8 +5,6 @@ seq=$1
 baseDir=$2
 NCPUS=$3
 long=$4
-ref=$5
-
 
 source ${baseDir}/configs/dependencies.config
 #testing

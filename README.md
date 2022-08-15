@@ -16,6 +16,12 @@ Install the environment with Conda
 
 ```conda env create --name mgap -f ./mgap/env.yaml```
 
+If you have issues with conda, you can try using mamba instead
+
+```conda install -c conda-forge mamba```
+
+```mamba env create --name mgap -f ./mgap/env.yaml```
+
 To run the pipeline, copy (or link) paired-end Illumina reads into a working directory and (optionally) suppy a closely related reference for scaffolding. Activate the MGAP environment in Conda 
 
 ```conda activate mgap```

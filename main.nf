@@ -97,7 +97,7 @@ if (params.ref) {
         file ref from reference_file
 
         output:
-        file "ref.*" into ref_index_ch
+        file "ref.ABACAS" into ref_index_ch
 
         """
         contig_count=\$(grep -c '>' ${ref})

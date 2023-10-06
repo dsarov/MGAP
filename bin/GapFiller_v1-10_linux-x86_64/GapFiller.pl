@@ -42,62 +42,73 @@
   use FindBin qw($Bin);
   use threads;
   use Text::Wrap;
-
+  use Getopt::Std;
   use threads::shared;
   my $totalReadsProcessed :shared;
   my $totalReadFiles :shared;
 
   $Text::Wrap::columns = 61;
-   require "getopts.pl";
 
-  use vars qw($opt_m $opt_o $opt_v $opt_p $opt_k $opt_a $opt_z $opt_s $opt_b $opt_n $opt_l $opt_x $opt_u $opt_t $opt_T $opt_g $opt_r $opt_d $opt_S $opt_i);
-  &Getopts('m:o:v:p:k:a:z:s:b:n:l:x:u:t:T:g:r:d:S:i:');
-   my ($keep, $trim, $gaps, $threads, $difference,$base_overlap,$min_overlap,$min_base_ratio,$base_name, $min_tig_overlap, $numiteration)= (0, 10,1,1, 50, 2,29, 0.7, "standard_output", 10,10);
+use vars qw($opt_m $opt_o $opt_v $opt_p $opt_k $opt_a $opt_z $opt_s $opt_b $opt_n $opt_l $opt_x $opt_u $opt_t $opt_T $opt_g $opt_r $opt_d $opt_S $opt_i);
+getopts('m:o:v:p:k:a:z:s:b:n:l:x:u:t:T:g:r:d:S:i:');
+my ($keep, $trim, $gaps, $threads, $difference,$base_overlap,$min_overlap,$min_base_ratio,$base_name, $min_tig_overlap, $numiteration)= (0, 10,1,1, 50, 2,29, 0.7, "standard_output", 10,10);
 
   my $seplines = ("-" x 60)."\n";
-  my $version = "[GapFiller_v1-10]";
+  my $version = "v1.11";
 #-------------------------------------------------READ OPTIONS
 
-  if(!($opt_l) || !($opt_s)){
-     print "ERROR: Parameter -l is required. Please insert a library file\n" if(!$opt_l);
-     print "ERROR: Parameter -s is required. Please insert a scaffold fastA file\n" if(!$opt_s);
-     print "\nUsage: $0 $version\n\n";
+use constant USAGE =><<EOH;
 
-     print "============ General Parameters ============\n";
-     print "-l  Library file containing two paired-read files with insert size, error and orientation indication.\n";
-     print "-s  Fasta file containing scaffold sequences used for extension.\n";
-     print "============ Extension Parameters ============\n";
-     print "-m  Minimum number of overlapping bases with the edge of the gap (default -m $min_overlap)\n";
-     print "-o  Minimum number of reads needed to call a base during an extension (default -o $base_overlap)\n";
-     print "-r  Percentage of reads that should have a single nucleotide extension in order to close a gap in a scaffold (Default: $min_base_ratio)\n";
-     print "-d  Maximum difference between the gapsize and the number of gapclosed nucleotides. Extension is stopped if it matches this parameter + gap size (default -d $difference, optional).\n";
-     print "-n  Minimum overlap required between contigs to merge adjacent sequences in a scaffold (default -n $min_tig_overlap, optional)\n";
-     print "-t  Number of reads to trim off the start and begin of the sequence (usually missambled/low-coverage reads) (default -t $trim, optional)\n";
-     print "-i  Number of iterations to fill the gaps (default -i $numiteration, optional)\n";
-     print "============ Bowtie Parameters ============\n";
-     print "-g  Maximum number of allowed gaps during mapping with Bowtie. Corresponds to the -v option in Bowtie. (default -g $gaps, optional)\n";
-     print "============ Additional Parameters ============\n";
-     print "-T  Number of threads to run (default -T $threads)\n";
-     print "-S  Skip reading of the input files again\n";
-     die "-b Base name for your output files (optional)\n";
+Usage: $0 $version
 
-  }
-  my $scaffold = $opt_s if($opt_s);
-  my $libraryfile;
-  $libraryfile = $opt_l if ($opt_l);
-  $min_overlap = $opt_m if ($opt_m);
-  $base_overlap = $opt_o if ($opt_o);
-  $base_name = $opt_b if($opt_b);
-  $min_tig_overlap = $opt_n if($opt_n);
-  $min_base_ratio = $opt_r if ($opt_r);
-  $threads = $opt_T if ($opt_T);
-  $gaps = $opt_g if ($opt_g || $opt_g eq 0);
-  $difference = $opt_d if($opt_d);
-  $trim = $opt_t if($opt_t || $opt_t eq 0);
-  $keep = $opt_S if($opt_S || $opt_S eq 0);
-  $numiteration = $opt_i if($opt_i);
-  mkpath("$base_name");
-  mkpath("$base_name/reads");
+
+============ General Parameters ============
+-l  Library file containing two paired-read files with insert size, error and orientation indication.
+-s  Fasta file containing scaffold sequences used for extension.
+
+============ Extension Parameters ============
+-m  Minimum number of overlapping bases with the edge of the gap (default -m $min_overlap)
+-o  Minimum number of reads needed to call a base during an extension (default -o $base_overlap)
+-r  Percentage of reads that should have a single nucleotide extension in order to close a gap in a scaffold (Default: $min_base_ratio)
+-d  Maximum difference between the gapsize and the number of gapclosed nucleotides. Extension is stopped if it matches this parameter + gap size (default -d $difference, optional).
+-n  Minimum overlap required between contigs to merge adjacent sequences in a scaffold (default -n $min_tig_overlap, optional)
+-t  Number of reads to trim off the start and begin of the sequence (usually missambled/low-coverage reads) (default -t $trim, optional)
+-i  Number of iterations to fill the gaps (default -i $numiteration, optional)
+
+============ Bowtie Parameters ============
+-g  Maximum number of allowed gaps during mapping with Bowtie. Corresponds to the -v option in Bowtie. (default -g $gaps, optional)
+
+============ Additional Parameters ============
+-T  Number of threads to run (default -T $threads)
+-S  Skip reading of the input files again
+-b  Base name for your output files (optional)
+
+EOH
+
+
+if(!($opt_l) || !($opt_s)) {
+	print "ERROR: Parameter -l is required. Please insert a library file\n" if(!$opt_l);
+	print "ERROR: Parameter -s is required. Please insert a scaffold fastA file\n" if(!$opt_s);
+	
+	die USAGE;
+}
+
+my $scaffold = $opt_s if($opt_s);
+my $libraryfile;
+$libraryfile = $opt_l if ($opt_l);
+$min_overlap = $opt_m if ($opt_m);
+$base_overlap = $opt_o if ($opt_o);
+$base_name = $opt_b if($opt_b);
+$min_tig_overlap = $opt_n if($opt_n);
+$min_base_ratio = $opt_r if ($opt_r);
+$threads = $opt_T if ($opt_T);
+$gaps = $opt_g if ($opt_g || $opt_g eq 0);
+$difference = $opt_d if($opt_d);
+$trim = $opt_t if($opt_t || $opt_t eq 0);
+$keep = $opt_S if($opt_S || $opt_S eq 0);
+$numiteration = $opt_i if($opt_i);
+mkpath("$base_name");
+mkpath("$base_name/reads");
 
   my $files = "";
   my $textline = "Your inserted inputs on $version at ".getDate().":\n\t-s $scaffold\n\t-l $libraryfile\n\t-b $base_name\n\t-o $base_overlap\n\t-m $min_overlap\n";

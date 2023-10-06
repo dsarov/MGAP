@@ -6,7 +6,8 @@ baseDir=$2
 NCPUS=$3
 long=$4
 ref=$5
-
+spades=$6
+mem=$7
 
 source ${baseDir}/configs/dependencies.config
 #testing
@@ -21,31 +22,46 @@ END_KMER=75
 
 #need to add chmod +x -r ./mgap/
 
+
+echo "Unzipping reads"
+gunzip -c ${seq}_1.fq.gz > ${seq}_1.fastq
+gunzip -c ${seq}_2.fq.gz > ${seq}_2.fastq
+echo "done"
+
 ##########################################################################
 ###                                                                    ###
 ###                          VELVET + OPTIMISER                        ###  
 ###                             WITH TRIMMED                           ###
 ###                                                                    ###
 ##########################################################################
-echo "Unzipping reads"
-gunzip -c ${seq}_1.fq.gz > ${seq}_1.fastq
-gunzip -c ${seq}_2.fq.gz > ${seq}_2.fastq
-echo "done"
+if [ "$spades" == false ]; then
+  echo "Shuffling sequences"
+  echo "command = perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq\n"
+  perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
+
+  echo -e "now running velvet optimiser with the following parameters\n"
+  echo -e "starting kmer = $START_KMER\n"
+  echo -e "ending kmer = $END_KMER\n"
+
+  echo "running velvet optimiser"
+  echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS"
+  perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
+  mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
+else
 
 
-echo "Shuffling sequences"
-echo "command = perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq\n"
-perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
+##########################################################################
+###                                                                    ###
+###                                SPADES                              ###  
+###                                                                    ###
+###                                                                    ###
+##########################################################################
+ echo "command =  spades.py -o ${seq/_1.fastq/_output} -1 ${seq}_1.fastq -2 ${seq}_2.fastq -t $NCPUS -m $mem "
+ spades.py -o ${seq}_spades -1 ${seq}_1.fastq -2 ${seq}_2.fastq -t $NCPUS -m $mem
+ mv ${seq}_spades/contigs.fasta ${seq}_velvet.scaff.fasta
+fi
 
-echo -e "now running velvet optimiser with the following parameters\n"
-echo -e "starting kmer = $START_KMER\n"
-echo -e "ending kmer = $END_KMER\n"
-
-echo "running velvet optimiser"
-echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS"
-perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
-mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
-
+ 
 ##########################################################################
 ###                                                                    ###
 ###                            GAPFILLER                               ###
@@ -68,7 +84,6 @@ else
 fi
 
 rm -rf ./Velv_scaff/
-#TO DO need filecheck here for gapfiller
 
 ##########################################################################
 ###                                                                    ###

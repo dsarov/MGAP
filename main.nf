@@ -12,7 +12,7 @@
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v2.1
+                                     v2.2
 ================================================================================
 
 Optional Parameters:
@@ -21,13 +21,22 @@ Optional Parameters:
 
                  Currently this is set to $params.fastq
 
-    --ref        Reference file used for reference assisted assembly using
+    --ref        Set to the name of the reference file.
+                 Reference file used for reference assisted assembly using
                  ABACAS. For best results please set this to a closely related
                  reference (i.e. same species and sequence type is ideal)
 
                  Currently ref is set to $params.ref
 
-    --kraken     Kraken2 can be used to filter raw sequence reads if multiple
+    --spades     Set to true/false. Spades can alternatively be used for the initial assembly
+                 instead of Velvet. This mode is suggested if the initial assembly is
+                 very poor or fails to produce an assembly file of the correct size.
+                 Most often this is caused by poor quality input data that needs
+                 to be cleaned but it is worth a shot.
+
+                Currently spades is set to $params.spades
+
+    --kraken     Set to true/false. Kraken2 can be used to filter raw sequence reads if multiple
                  species contamination is suspected. To use this feature, please
                  set this flag to a specific genus and/or species. E.g. to filter
                  all reads that match Pseudomonas or "Pseudomonas aeruginosa". If
@@ -198,7 +207,7 @@ if (params.ref) {
 
       script:
       """
-      bash assemble.sh ${id} ${baseDir} $task.cpus no
+      bash assemble.sh ${id} ${baseDir} $task.cpus no ref $params.spades $task.memory
       """
 
 }
@@ -219,7 +228,7 @@ if (params.ref) {
 
        script:
        """
-       bash assemble.sh ${id} ${baseDir} $task.cpus no none
+       bash assemble.sh ${id} ${baseDir} $task.cpus no none $params.spades $task.memory
        """
 
  }

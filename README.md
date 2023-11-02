@@ -40,10 +40,6 @@ As of version 2.0, MGAP utilises nextflow for job management. This means that pi
 
 MGAP (Microbial Genome Assembler Pipeline) is an automated pipeline that runs an optimised Velvet assembly followed by gap filling and polishing to produce high-quality, reference-assisted assembly of microbial genomes using paired-end Illumina data.
 
-<i>What resource managers can MGAP use?</i>
-
-MGAP currently only works with the PBS (Torque) resource manager. If you would like MGAP to utilise different resource managers please contact me at derek.sarovich@gmail.com
-
 <i>MGAP workflow</i>
 
 MGAP performs reference assisted assemblies on paired-end Illumina FASTQ reads, either in phred +33 or phred +64 quality score format. MGAP cannot be used on single-end data, or for NGS data generated on platforms other than Illumina.

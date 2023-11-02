@@ -95,8 +95,7 @@ Finally, Pilon v1.22 corrects any insertion-deletion (indel) and SNP errors in t
 
 <i>Who created MGAP?</i>
 
-MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSarovich)) and Erin Price ([@Dr_ErinPrice](https://twitter.com/Dr_ErinPrice)) at University of the Sunshine Coast, Sippy Downs, QLD, Australia.
-
+MGAP was written by Derek Sarovich ([@DerekSarovich](https://twitter.com/DerekSarovich)) and Erin Price ([@Dr_ErinPrice](https://twitter.com/Dr_ErinPrice)).
 <i>What to do if I run into issues with MGAP?</i>
 
 Please send bug reports to derek.sarovich@gmail.com

@@ -14,7 +14,7 @@ Add execute permissions for the tools shipped with MGAP
 
 ```chmod -R +x ./mgap/*```
 
-Install the environment with Conda, although I can almost never get conda to work on my system and prefer to use Mamba.
+Install the environment with Conda, although I can almost never get conda to solve environments on my system and prefer to use Mamba.
 
 ```conda env create --name mgap -f ./mgap/env.yaml```
 

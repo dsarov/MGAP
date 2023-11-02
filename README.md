@@ -1,5 +1,7 @@
 # MGAP
 
+MGAP can now use SPAdes instead of Velvet if needed.
+
 MGAP has been updated to version 2.0 with Nextflow integration for job management. Installation and running the pipeline is now slightly different than previous versions.
 
 <i>MGAP Installation (post version 2.0)</i>
@@ -48,6 +50,7 @@ MGAP performs reference assisted assemblies on paired-end Illumina FASTQ reads, 
 
 To achieve high-quality assemblies, MGAP incorporates the following programs into its workflow:
 - <b>Trimmomatic</b> [(Bolger et al., 2014)](http://bioinformatics.oxfordjournals.org/content/30/15/2114)
+- <b>SPAdes</b> [(Bankevich et al., 2012).](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3342519/).
 - <b>Velvet</b> [(Zerbino & Birney, 2008)](http://genome.cshlp.org/content/18/5/821.full)
 - <b>VelvetOptimiser</b> (https://github.com/tseemann/VelvetOptimiser)
 - <b>GapFiller</b> [(Boetzer & Pirovano, 2012)](http://genomebiology.biomedcentral.com/articles/10.1186/gb-2012-13-6-r56)

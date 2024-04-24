@@ -3,9 +3,9 @@
 /*
  *
  *  Pipeline            MGAP
- *  Version             v2.0
+ *  Version             v2.2
  *  Description         Microbial Genome Assembly Pipeline
- *  Authors             Derek Sarovich, Erin Price,
+ *  Authors             Derek Sarovich and Erin Price.
  *
  */
 
@@ -85,7 +85,7 @@ if (params.ref) {
   reference_file = file(params.ref)
   if( !reference_file.exists() ) {
     exit 1, """
-  ARDaP can't find the reference file.
+  MGAP can't find the reference file.
   It is currently looking for this file --> ${params.ref}
   If this file doesn't exist, please download and copy to the analysis dirrectory
   """

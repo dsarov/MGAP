@@ -24,7 +24,8 @@ Optional Parameters:
     --ref        Set to the name of the reference file.
                  Reference file used for reference assisted assembly using
                  ABACAS. For best results please set this to a closely related
-                 reference (i.e. same species and sequence type is ideal)
+                 reference (i.e. same species and sequence type is ideal). To run a 
+                 non-assisted assembly, set this variable to false
 
                  Currently ref is set to $params.ref
 

@@ -58,30 +58,6 @@ To achieve high-quality assemblies, MGAP incorporates the following programs int
 
 - <b>MIRA (convert_project)</b> [(Chevreux et al., 1999)](https://sourceforge.net/projects/mira-assembler/files/MIRA/Older%20releases/V3.4.0/)
 
-<i>How do I install MGAP (prior to version 2.0)?</i>
-
-1) Download or clone the MGAP git repository. 
-
-git clone https://github.com/dsarov/MGAP---Microbial-Genome-Assembler-Pipeline.git
-
-2) Add executable permissions to the installation
-
-cd MGAP---Microbial-Genome-Assembler-Pipeline
-
-chmod -R +x ./*
-
-3) Edit the MGAP.config to point to the installation location of MGAP. You should just need to change the MGAP_LOCATION variable. 
-
-4) Test out the pipeline. MGAP should complain if it can't find any of its dependencies.
-
-<i>How do I run MGAP?</i>
-
-USAGE: MGAP.sh -r [reference, without .fasta extension] -s [specify single strain]
-
-If you would prefer MGAP to perform assemblies without using a reference to assist or if no reference is available, set the -r flag to "none".
-
-MGAP expects reads to be paired-end Illumina data in the following format: StrainOne_1_sequence.fastq.gz, StrainOne_2_sequence.fastq.gz (first pair) and StrainTwo_1_sequence.fastq.gz, StrainTwo_2_sequence.fastq.gz (second pair).
-
 <i>What does MGAP do?</i>
 
 Prior to assembly, FASTQ reads are conservatively trimmed and filtered using Trimmomatic v0.35 to remove low-quality bases and Illumina adapter contamination. The Trimmomatic parameters in MGAP are: LEADING=3, TRAILING=3, SLIDINGWINDOW=4:15, MINLEN=36, and ILLUMINACLIP (for TruSeq2 paired-end adapters). These parameters can be altered as desired. 

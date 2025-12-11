@@ -8,6 +8,7 @@ long=$4
 ref=$5
 spades=$6
 mem=$7
+image=$8
 
 source ${baseDir}/configs/dependencies.config
 #testing

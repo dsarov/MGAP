@@ -64,9 +64,9 @@ process FASTP {
     path "${id}.fastp.html", emit: html
 
     script:
-    def fastp_cmd = params.FASTP ?: 'fastp'
+
     """
-    ${fastp_cmd} \
+    fastp \
       --in1 ${forward} \
       --in2 ${reverse} \
       --out1 ${id}_1.fq.gz \

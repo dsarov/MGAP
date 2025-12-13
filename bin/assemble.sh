@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# Arguments passed from Nextflow
 seq=$1
 baseDir=$2
 NCPUS=$3
@@ -8,238 +8,114 @@ long=$4
 ref=$5
 spades=$6
 mem=$7
-image=$8
+image=$8 # Unused now, but kept for argument position compatibility
 
-source ${baseDir}/configs/dependencies.config
-#testing
-#baseDir=~/bin/mgap/
-#NCPUS=23
-#ref=Pa_PA01.fasta
+# Load dependencies if config exists, otherwise rely on Conda PATH
+if [ -f "${baseDir}/configs/dependencies.config" ]; then
+    source ${baseDir}/configs/dependencies.config
+fi
 
-export PERL5LIB=/home/dsarovich/.cpan/build/Perl4-CoreLibs-0.004-0/lib/
-##starting and ending kmer for velvet optimiser
-START_KMER=53	
-END_KMER=75
+# Ensure basic tools are set if variables aren't loaded from config
+PILON=${PILON:-pilon}
 
-#need to add chmod +x -r ./mgap/
-
-
-echo "Unzipping reads"
-gunzip -c ${seq}_1.fq.gz > ${seq}_1.fastq
-gunzip -c ${seq}_2.fq.gz > ${seq}_2.fastq
-echo "done"
+echo "=========================================="
+echo " Preparing Reads"
+echo "=========================================="
 
 ##########################################################################
-###                                                                    ###
-###                          VELVET + OPTIMISER                        ###  
-###                             WITH TRIMMED                           ###
-###                                                                    ###
+###                             ASSEMBLY                               ###
 ##########################################################################
-if [ "$spades" == false ]; then
-  echo "Shuffling sequences"
-  echo "command = perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq\n"
-  perl ${SHUFFLE} ${seq}_1.fastq ${seq}_2.fastq ${seq}_merged.fastq
 
-  echo -e "now running velvet optimiser with the following parameters\n"
-  echo -e "starting kmer = $START_KMER\n"
-  echo -e "ending kmer = $END_KMER\n"
-
-  echo "running velvet optimiser"
-  echo "command = perl ${VelvOpt} -o \"-scaffolding yes -min_contig_lgth 1000\" -s ${START_KMER} -e ${END_KMER} -f \"-shortPaired -fastq.gz ${seq}_merged.fastq\" -t $NCPUS"
-  perl ${VelvOpt} -o "-scaffolding yes -min_contig_lgth 1000" -s ${START_KMER} -e ${END_KMER} -f "-shortPaired -fastq.gz ${seq}_merged.fastq" -t $NCPUS
-  mv auto_data_*/contigs.fa ${seq}_velvet.scaff.fasta
+if [ "$spades" == "true" ]; then
+    echo "Running Spades..."
+    # Using existing logic for Spades
+    spades.py -o ${seq}_spades -1 ${seq}_1.fq.gz -2 ${seq}_2.fq.gz -t $NCPUS -m $mem
+    mv ${seq}_spades/contigs.fasta ${seq}_assembly_raw.fasta
 else
-
-
-##########################################################################
-###                                                                    ###
-###                                SPADES                              ###  
-###                                                                    ###
-###                                                                    ###
-##########################################################################
- echo "command =  spades.py -o ${seq/_1.fastq/_output} -1 ${seq}_1.fastq -2 ${seq}_2.fastq -t $NCPUS -m $mem "
- spades.py -o ${seq}_spades -1 ${seq}_1.fastq -2 ${seq}_2.fastq -t $NCPUS -m $mem
- mv ${seq}_spades/contigs.fasta ${seq}_velvet.scaff.fasta
+    echo "Running MEGAHIT (Replacing Velvet)..."
+    
+    # Clean up previous run if exists
+    rm -rf ${seq}_megahit_out
+    
+    # Run MEGAHIT
+    megahit -1 ${seq}_1.fq.gz -2 ${seq}_2.fq.gz -o ${seq}_megahit_out -t $NCPUS
+    
+    # Move output to standard name
+    mv ${seq}_megahit_out/final.contigs.fa ${seq}_assembly_raw.fasta
 fi
 
- 
 ##########################################################################
-###                                                                    ###
-###                            GAPFILLER                               ###
-###                                                                    ###
+###                      SCAFFOLDING (RagTag)                          ###
+###          Replaces: GapFiller, ABACAS, IMAGE, SSPACE                ###
 ##########################################################################
 
-echo "Running gapfiller"
-echo "Creating library file"
-echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR"
-echo -e "${seq}_Gapfiller\tbwa\t${seq}_1.fastq\t${seq}_2.fastq\t500\t0.25\tFR" > Gapfiller.txt
-
-echo "command=perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff"
-
-perl ${GAPFILLER} -l Gapfiller.txt -s ${seq}_velvet.scaff.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b Velv_scaff
-
-if [ -s Velv_scaff/Velv_scaff.gapfilled.final.fa ]; then
-  mv Velv_scaff/Velv_scaff.gapfilled.final.fa ${seq}_velvet.fasta
+# RagTag requires a reference. If 'ref' is 'none' or missing, we skip scaffolding.
+if [ "$ref" != "none" ] && [ -s "$ref" ]; then
+    echo "Reference found: $ref"
+    echo "Running RagTag to scaffold contigs..."
+    
+    # ragtag.py scaffold <reference> <query_assembly>
+    ragtag.py scaffold -t $NCPUS -o ${seq}_ragtag_out "$ref" ${seq}_assembly_raw.fasta
+    
+    # Rename RagTag output
+    mv ${seq}_ragtag_out/ragtag.scaffold.fasta ${seq}_scaffolded.fasta
+    
 else
-  mv ${seq}_velvet.scaff.fasta ${seq}_velvet.fasta
-fi
-
-rm -rf ./Velv_scaff/
-
-##########################################################################
-###                                                                    ###
-###                             ABACAS                                 ###
-###                                                                    ###
-##########################################################################
-
-if [ "$contig_count" != 1 -a "$ref" != "none" ]; then
-  echo "command=perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
-  perl ${ABACAS} -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
-  echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
-  cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
-fi
-
-if [ "$contig_count" == 1 -a "$ref" != "none" ]; then
-  echo "command=perl $ABACAS -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped"
-  perl ${ABACAS} -m -b -r ref.ABACAS -q ${seq}_velvet.fasta -p nucmer -o ${seq}mapped
-  echo -e "Velvet assembly has been mapped against the reference using ABACAS\n\n"
-  cat ${seq}mapped.fasta ${seq}mapped.contigsInbin.fas > ${seq}mapnunmap.fasta
-fi
-
-if [ "$ref" == "none" ]; then
-  mv ${seq}_velvet.fasta ${seq}mapnunmap.fasta
-fi
-
-
-##########################################################################
-###                                                                    ###
-###                             IMAGE                                  ###
-###                                                                    ###
-##########################################################################
-
-## include test for PAGIT assembly
-
-  echo "command=perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81"
-   perl $IMAGE/image.pl -scaffolds ${seq}mapnunmap.fasta -prefix ${seq} -iteration 1 -all_iteration 3 -dir_prefix ite -kmer 81
-   echo "command=perl $IMAGE/restartIMAGE.pl ite3 71 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite3 71 3 partitioned
-   echo "command=perl $IMAGE/restartIMAGE.pl ite6 61 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite6 61 3 partitioned
-   echo "command=perl $IMAGE/restartIMAGE.pl ite9 51 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite9 51 3 partitioned
-   echo "command=perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite12 41 3 partitioned
-   echo "command=perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite15 31 3 partitioned
-   echo "command=perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned"
-   perl $IMAGE/restartIMAGE.pl ite18 21 3 partitioned
-   
-   mv ite21/new.fa ${seq}_IMAGE2_out.fasta
-
-  perl $IMAGE/image_run_summary.pl ite > IMAGE2.summary
-
- rm -r ite*
- rm partitioned_1.fastq
- rm partitioned_2.fastq
-  
-
-##########################################################################
-###                                                                    ###
-###                             SSPACE                                 ###
-###                                                                    ###
-##########################################################################
-
-  #TODO need to write SSPACE version check for different library file. The below is for SSPACEv3.0
-  
-  #echo -e "${seq}SSPACE\tbowtie\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > ${seq}/library.txt
-  
-  #For SSPACE v2.0 basic
-  echo -e "${seq}SSPACE\t${seq}_1.fastq\t${seq}_2.fastq\t200\t0.25\tFR" > library.txt
-  echo "command=perl $SSPACE -l library.txt -s ${seq}_IMAGE2_out.fasta"
-  perl $SSPACE -l library.txt -s ${seq}_IMAGE2_out.fasta
-  mv standard_output.final.scaffolds.fasta ${seq}SSPACE.fasta
-  rm -r pairinfo
-  rm -r intermediate_results
-  rm -r bowtieoutput
-  rm -r reads
-  rm standard_output.final.evidence
-  rm standard_output.logfile.txt
-  #mv ${seq}/standard_output.summary.txt ${seq}/SSPACE.summary.txt ##standard_output.summaryfile.txt is the correct name for this output
-
-
-### SSPACE test ############
-## This will skip the next step if SSPACE doesn't find anything to scaffold in your assembly, which caused a gapfiller crash
-
-
-
-if [ -s standard_output.summaryfile.txt ]; then
-  SSPACE_test=`grep 'Total number of N' standard_output.summaryfile.txt |tail -n1 |awk '{print $6}'`
-  if [ "$SSPACE_test" == 0 ]; then
-   cp ${seq}SSPACE.fasta ${seq}_gap2.fasta
-  fi
-fi
-
-
-##########################################################################
-###                                                                    ###
-###                            GAPFILLER 2                             ###
-###  This step is skipped is SSPACE doesn't find anything to scaffold  ###
-###                                                                    ###
-##########################################################################
-if [ ! -s ${seq}_gap2.fasta ]; then
-  echo "command=perl $GAPFILLER -l Gapfiller.txt -s ${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff"
-  perl $GAPFILLER -l Gapfiller.txt -s ${seq}SSPACE.fasta -m 20 -o 2 -r 0.7 -n 10 -d 50 -t 10 -T ${NCPUS} -i 3 -b SSPACE_scaff
-    mv SSPACE_scaff/SSPACE_scaff.gapfilled.final.fa ${seq}_gap2.fasta
-	rm -r SSPACE_scaff/
+    echo "No reference provided (or ref=none). Skipping RagTag scaffolding."
+    # Just pass the raw assembly to the next step
+    mv ${seq}_assembly_raw.fasta ${seq}_scaffolded.fasta
 fi
 
 ##########################################################################
-###                                                                    ###
-###                Remove contigs <1kb and image cleanup               ###
-###                                                                    ###
+###                  FILTERING (<1kb Removal)                          ###
 ##########################################################################
+
+# We use 'seqtk' here instead of the old CONVERT_PROJECT legacy tool
+# seqtk is standard in bioconda and likely already in your env
+
 if [ "$long" == "no" ]; then
-  echo "command=$CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}_gap2.fasta ${seq}_pilon"
-  $CONVERT_PROJECT -f fasta -t fasta -x 1000 -R Contig ${seq}_gap2.fasta ${seq}_pilon
-  echo -e "Project has been filtered to remove contigs less than 1kb in size \n" 
+    echo "Filtering contigs < 1000bp..."
+    seqtk seq -L 1000 ${seq}_scaffolded.fasta > ${seq}_pilon_input.fasta
+    echo -e "Filtered removed contigs less than 1kb.\n" 
 else 
-  mv ${seq}_gap2.fasta ${seq}_pilon.fasta
-  echo -e "Project includes all contigs including <1kb in size\n" 
+    mv ${seq}_scaffolded.fasta ${seq}_pilon_input.fasta
+    echo -e "Keeping all contigs.\n" 
 fi
 
 ##########################################################################
-###                                                                    ###
-###                                PILON                               ###
-###                                                                    ###
+###                           PILON (Polishing)                        ###
 ##########################################################################
 
-#create bam file before running pilon
-if [ ! -s ${seq}_pilon.fasta.bwt ]; then
-  bwa index ${seq}_pilon.fasta
-  else
-  echo "Found ref index for Pilon"
-fi
-if [ ! -s ${seq}.sam ]; then
-    echo "command=bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t $NCPUS ${seq}_pilon.fasta ${seq}_1.fastq ${seq}_2.fastq > ${seq}.sam"
-    bwa mem -R '@RG\tID:Assembly\tSM:${seq}\tPL:ILLUMINA' -a -t $NCPUS ${seq}_pilon.fasta ${seq}_1.fastq ${seq}_2.fastq > ${seq}.sam
-  else
-    echo "Found bam file for pilon"  
-fi
-if [ ! -s ${seq}.bam ]; then
-        echo "command=samtools view -h -b -@ 1 -q 1 -o ${seq}.bam.tmp ${seq}.sam && samtools sort -@ 1 -o ${seq}.bam ${seq}.bam.tmp"
-  	    samtools view -h -b -@ 1 -q 1 -o ${seq}.bam.tmp ${seq}.sam && samtools sort -@ 1 -o ${seq}.bam ${seq}.bam.tmp
-		rm ${seq}.bam.tmp ${seq}.sam
-fi
-if [ ! -s ${seq}.bam.bai ]; then
-    echo "command=samtools index ${seq}.bam"
-    samtools index ${seq}.bam
+echo "Running Pilon Polishing..."
+
+# 1. Index the assembly
+bwa index ${seq}_pilon_input.fasta
+
+# 2. Map reads to the assembly (Piping for speed/disk space)
+bwa mem -t $NCPUS ${seq}_pilon_input.fasta ${seq}_1.fq.gz ${seq}_2.fq.gz \
+    | samtools sort -@ $NCPUS -o ${seq}.bam -
+
+# 3. Index BAM
+samtools index ${seq}.bam
+
+# 4. Run Pilon
+# Note: Pilon command varies slightly depending on installation.
+# If installed via Conda, 'pilon' command works. 
+# If $PILON var is set (from config), we use that.
+
+echo "Executing Pilon..."
+# We use a java max heap limit of $mem (passed from Nextflow)
+# If PILON variable contains "jar", use java -jar, else assume it's the executable wrapper
+if [[ "$PILON" == *".jar"* ]]; then
+    java -Xmx${mem}G -jar ${PILON} --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final
+else
+    pilon --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final --Xmx${mem}G
 fi
 
-if [ ! -s pilon.fasta ]; then
-   echo "command=java -jar ${PILON} --genome ${seq}_pilon.fasta --frags ${seq}.bam"
-   java -jar ${PILON} --genome ${seq}_pilon.fasta --frags ${seq}.bam
-   mv pilon.fasta ${seq}_final.fasta
-fi 
+# Pilon outputs with a .fasta extension automatically, so the result is ${seq}_final.fasta
+
+# Cleanup
+rm ${seq}.bam ${seq}.bam.bai
+rm -rf ${seq}_megahit_out ${seq}_ragtag_out
 
 exit 0
-

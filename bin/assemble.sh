@@ -109,7 +109,7 @@ echo "Executing Pilon..."
 if [[ "$PILON" == *".jar"* ]]; then
     java -Xmx${mem}G -jar ${PILON} --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final
 else
-    pilon --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final --Xmx${mem}G
+    pilon --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final
 fi
 
 # Pilon outputs with a .fasta extension automatically, so the result is ${seq}_final.fasta

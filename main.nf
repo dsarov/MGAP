@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.1 (DSL2)
+ * Version           v3.2 (DSL2)
  * Description       Microbial Genome Assembly Pipeline
  */
 
@@ -15,13 +15,13 @@ params.no_trim = false
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.1
+                                     v3.2
 ================================================================================
 fastq        : ${params.fastq}
 ref          : ${params.ref}
 spades       : ${params.spades}
 executor     : ${params.executor}
-trimming     : ${params.no_trim ? "SKIPPED" : "ENABLED"}
+trimming     : ${params.no_trim ? "SKIPPED" : "ENABLED (FastP)"}
 ================================================================================
 """
 
@@ -52,25 +52,33 @@ process INDEX_REFERENCE {
     """
 }
 
-process TRIMMOMATIC {
-    label "trimmomatic"
+process FASTP {
+    label "fastp"
     tag "$id"
+    publishDir "./Outputs/QC", mode: 'copy', pattern: "*.html"
 
     input:
     tuple val(id), path(forward), path(reverse)
 
     output:
     tuple val(id), path("${id}_1.fq.gz"), path("${id}_2.fq.gz"), emit: trimmed_reads
+    path "${id}.fastp.json", emit: json
+    path "${id}.fastp.html", emit: html
 
     script:
-    def trim_cmd = params.TRIMMOMATIC ?: 'trimmomatic'
+    // Allows you to override the path in config (params.FASTP) or defaults to 'fastp'
+    def fastp_cmd = params.FASTP ?: 'fastp'
     """
-    trimmomatic PE -threads ${task.cpus} ${forward} ${reverse} \
-    ${id}_1.fq.gz ${id}_1_u.fq.gz ${id}_2.fq.gz ${id}_2_u.fq.gz \
-    ILLUMINACLIP:${projectDir}/resources/trimmomatic/all_adapters.fa:2:30:10: \
-    LEADING:10 TRAILING:10 SLIDINGWINDOW:4:15 MINLEN:36
-
-    rm ${id}_1_u.fq.gz ${id}_2_u.fq.gz
+    ${fastp_cmd} \
+      --in1 ${forward} \
+      --in2 ${reverse} \
+      --out1 ${id}_1.fq.gz \
+      --out2 ${id}_2.fq.gz \
+      --thread ${task.cpus} \
+      --detect_adapter_for_pe \
+      --length_required 36 \
+      --json ${id}.fastp.json \
+      --html ${id}.fastp.html
     """
 }
 
@@ -105,6 +113,8 @@ process ASSEMBLY_NO_REF {
     tuple val(id), path("${id}_final.fasta"), emit: assembly
 
     script:
+    // Note: I kept your path as 'assemble.sh' here (vs 'bin/assemble.sh' above)
+    // to match your original script, but check if this needs to be standardized.
     """
     bash ${projectDir}/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()} $params.image
     """
@@ -121,16 +131,15 @@ workflow {
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
-    // 2. Logic to Handle Trimming vs Skipping
-    // We define a new channel 'assembly_input_ch' that will hold either raw or trimmed reads
+    // 2. Logic to Handle Trimming (FastP) vs Skipping
 
     if (params.no_trim) {
         // Skip Process: Pass raw reads directly to assembly
         assembly_input_ch = reads_ch
     } else {
-        // Run Process: Run Trimmomatic first
-        TRIMMOMATIC(reads_ch)
-        assembly_input_ch = TRIMMOMATIC.out.trimmed_reads
+        // Run Process: Run FastP first
+        FASTP(reads_ch)
+        assembly_input_ch = FASTP.out.trimmed_reads
     }
 
     // 3. Conditional Logic based on Reference existence

@@ -8,7 +8,7 @@ nextflow.enable.dsl=2
  * Description       Microbial Genome Assembly Pipeline
  */
 
-params.no_trim = false
+params.no-trim = false
 
 log.info """
 ================================================================================
@@ -19,7 +19,7 @@ fastq        : ${params.fastq}
 ref          : ${params.ref}
 spades       : ${params.spades}
 executor     : ${params.executor}
-trimming     : ${params.no_trim ? "SKIPPED" : "ENABLED (FastP)"}
+trimming     : ${params.no-trim}
 ================================================================================
 """
 
@@ -197,7 +197,7 @@ workflow {
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
     // 2. Logic to Handle Trimming
-    if (params.no_trim) {
+    if (!params.no-trim) {
         assembly_input_ch = reads_ch
     } else {
         FASTP(reads_ch)

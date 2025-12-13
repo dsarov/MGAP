@@ -4,20 +4,24 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.0 (DSL2)
+ * Version           v3.1 (DSL2)
  * Description       Microbial Genome Assembly Pipeline
  */
+
+// Default parameter to ensure logic works if flag is missing
+params.no_trim = false
 
 // Logging/Info block
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.0
+                                     v3.1
 ================================================================================
 fastq        : ${params.fastq}
 ref          : ${params.ref}
 spades       : ${params.spades}
 executor     : ${params.executor}
+trimming     : ${params.no_trim ? "SKIPPED" : "ENABLED"}
 ================================================================================
 """
 
@@ -59,7 +63,6 @@ process TRIMMOMATIC {
     tuple val(id), path("${id}_1.fq.gz"), path("${id}_2.fq.gz"), emit: trimmed_reads
 
     script:
-    // Note: Ensure params.TRIMMOMATIC is defined in config or defaults
     def trim_cmd = params.TRIMMOMATIC ?: 'trimmomatic'
     """
     ${trim_cmd} PE -threads ${task.cpus} ${forward} ${reverse} \
@@ -118,8 +121,17 @@ workflow {
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
-    // 2. Run Trimmomatic on all reads
-    TRIMMOMATIC(reads_ch)
+    // 2. Logic to Handle Trimming vs Skipping
+    // We define a new channel 'assembly_input_ch' that will hold either raw or trimmed reads
+
+    if (params.no_trim) {
+        // Skip Process: Pass raw reads directly to assembly
+        assembly_input_ch = reads_ch
+    } else {
+        // Run Process: Run Trimmomatic first
+        TRIMMOMATIC(reads_ch)
+        assembly_input_ch = TRIMMOMATIC.out.trimmed_reads
+    }
 
     // 3. Conditional Logic based on Reference existence
     if (params.ref) {
@@ -130,9 +142,9 @@ workflow {
         // Run Indexing
         INDEX_REFERENCE(ref_file)
 
-        // Run Assembly using the Reference and the Trimmed Reads
+        // Run Assembly using the decided input channel (raw or trimmed)
         ASSEMBLY_WITH_REF(
-            TRIMMOMATIC.out.trimmed_reads,
+            assembly_input_ch,
             ref_file,
             INDEX_REFERENCE.out.abacas_ref
         )
@@ -140,7 +152,7 @@ workflow {
     } else {
 
         // Run Assembly without Reference
-        ASSEMBLY_NO_REF(TRIMMOMATIC.out.trimmed_reads)
+        ASSEMBLY_NO_REF(assembly_input_ch)
 
     }
 }

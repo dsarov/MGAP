@@ -4,18 +4,16 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.2 (DSL2)
+ * Version           v3.3 (DSL2)
  * Description       Microbial Genome Assembly Pipeline
  */
 
-// Default parameter to ensure logic works if flag is missing
 params.no_trim = false
 
-// Logging/Info block
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.2
+                                     v3.3
 ================================================================================
 fastq        : ${params.fastq}
 ref          : ${params.ref}
@@ -66,7 +64,6 @@ process FASTP {
     path "${id}.fastp.html", emit: html
 
     script:
-    // Allows you to override the path in config (params.FASTP) or defaults to 'fastp'
     def fastp_cmd = params.FASTP ?: 'fastp'
     """
     ${fastp_cmd} \
@@ -113,10 +110,78 @@ process ASSEMBLY_NO_REF {
     tuple val(id), path("${id}_final.fasta"), emit: assembly
 
     script:
-    // Note: I kept your path as 'assemble.sh' here (vs 'bin/assemble.sh' above)
-    // to match your original script, but check if this needs to be standardized.
     """
     bash ${projectDir}/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()} $params.image
+    """
+}
+
+process GENERATE_SUMMARY {
+    label "summary"
+    publishDir "./Outputs/", mode: 'copy'
+
+    input:
+    path assemblies // This receives a list of all files due to .collect()
+
+    output:
+    path "assembly_stats.csv"
+
+    script:
+    """
+    #!/usr/bin/env python3
+    import sys
+    import os
+
+    # Function to calculate N50
+    def calculate_n50(lengths):
+        sorted_len = sorted(lengths, reverse=True)
+        total_len = sum(lengths)
+        csum = 0
+        for l in sorted_len:
+            csum += l
+            if csum >= total_len / 2:
+                return l
+        return 0
+
+    print("Writing assembly stats...")
+
+    with open("assembly_stats.csv", "w") as out:
+        out.write("Sample,Num_Contigs,Total_Size,Max_Contig,N50\\n")
+
+        # Nextflow stages all input files in the current directory
+        # We iterate over the file names provided by Nextflow
+        # 'assemblies' is a space-separated string of filenames in the bash context,
+        # but in python we can grab them from glob or if passed as args.
+        # Easier way in NF script block: pass them as args or just iterate current dir.
+
+        # We will iterate through the files provided in input channel
+        input_files = "${assemblies}".split()
+
+        for fpath in input_files:
+            # Clean sample name
+            sample = os.path.basename(fpath).replace('_final.fasta', '')
+
+            lengths = []
+            with open(fpath, 'r') as fasta:
+                seq_len = 0
+                for line in fasta:
+                    line = line.strip()
+                    if line.startswith(">"):
+                        if seq_len > 0: lengths.append(seq_len)
+                        seq_len = 0
+                    else:
+                        seq_len += len(line)
+                if seq_len > 0: lengths.append(seq_len) # add last contig
+
+            if not lengths:
+                out.write(f"{sample},0,0,0,0\\n")
+                continue
+
+            n_contigs = len(lengths)
+            total_size = sum(lengths)
+            max_contig = max(lengths)
+            n50 = calculate_n50(lengths)
+
+            out.write(f"{sample},{n_contigs},{total_size},{max_contig},{n50}\\n")
     """
 }
 
@@ -131,37 +196,40 @@ workflow {
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
-    // 2. Logic to Handle Trimming (FastP) vs Skipping
-
+    // 2. Logic to Handle Trimming
     if (params.no_trim) {
-        // Skip Process: Pass raw reads directly to assembly
         assembly_input_ch = reads_ch
     } else {
-        // Run Process: Run FastP first
         FASTP(reads_ch)
         assembly_input_ch = FASTP.out.trimmed_reads
     }
 
     // 3. Conditional Logic based on Reference existence
     if (params.ref) {
-
         ref_file = file(params.ref)
         if( !ref_file.exists() ) { error "Reference file not found: ${params.ref}" }
 
-        // Run Indexing
         INDEX_REFERENCE(ref_file)
 
-        // Run Assembly using the decided input channel (raw or trimmed)
         ASSEMBLY_WITH_REF(
             assembly_input_ch,
             ref_file,
             INDEX_REFERENCE.out.abacas_ref
         )
 
-    } else {
+        // Capture the output channel
+        final_assemblies_ch = ASSEMBLY_WITH_REF.out.assembly
 
-        // Run Assembly without Reference
+    } else {
         ASSEMBLY_NO_REF(assembly_input_ch)
 
+        // Capture the output channel
+        final_assemblies_ch = ASSEMBLY_NO_REF.out.assembly
     }
+
+    // 4. Summary Step
+    // We Map to extract only the file path (dropping the ID), then Collect all into a list
+    GENERATE_SUMMARY(
+        final_assemblies_ch.map{ it[1] }.collect()
+    )
 }

@@ -17,7 +17,7 @@ fastq        : ${params.fastq}
 ref          : ${params.ref}
 spades       : ${params.spades}
 executor     : ${params.executor}
-trimming     : ${params.notrim"}
+trimming     : ${params.notrim}
 ================================================================================
 """
 

@@ -127,7 +127,7 @@ process ASSEMBLY_NO_REF {
 
     script:
     """
-    bash ${projectDir}/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()}
+    bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()}
     """
 }
 

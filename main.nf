@@ -13,11 +13,12 @@ log.info """
                                     NF-MGAP
                                      v3.5
 ================================================================================
-fastq        : ${params.fastq}
-ref          : ${params.ref}
-spades       : ${params.spades}
-executor     : ${params.executor}
-trimming     : ${params.notrim}
+fastq             : ${params.fastq}
+ref               : ${params.ref}
+spades            : ${params.spades}
+megahit           : ${!params.spades}
+executor          : ${params.executor}
+skip trimming     : ${params.notrim}
 ================================================================================
 """
 
@@ -109,7 +110,7 @@ process ASSEMBLY_WITH_REF {
 
     script:
     """
-    bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no ${params.ref} $params.spades ${task.memory.toGiga()} $params.image
+    bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no ${params.ref} $params.spades ${task.memory.toGiga()}
     """
 }
 
@@ -126,7 +127,7 @@ process ASSEMBLY_NO_REF {
 
     script:
     """
-    bash ${projectDir}/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()} $params.image
+    bash ${projectDir}/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()}
     """
 }
 

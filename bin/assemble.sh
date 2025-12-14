@@ -8,7 +8,7 @@ long=$4
 ref=$5
 spades=$6
 mem=$7
-image=$8 # Unused now, but kept for argument position compatibility
+
 
 # Load dependencies if config exists, otherwise rely on Conda PATH
 if [ -f "${baseDir}/configs/dependencies.config" ]; then
@@ -109,7 +109,7 @@ echo "Executing Pilon..."
 if [[ "$PILON" == *".jar"* ]]; then
     java -Xmx${mem}G -jar ${PILON} --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final
 else
-    pilon --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final
+    pilon --genome ${seq}_pilon_input.fasta --frags ${seq}.bam --output ${seq}_final -Xmx${mem}G
 fi
 
 # Pilon outputs with a .fasta extension automatically, so the result is ${seq}_final.fasta

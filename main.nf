@@ -4,21 +4,20 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.3 (DSL2)
+ * Version           v3.5 (DSL2)
  * Description       Microbial Genome Assembly Pipeline
  */
-
 
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.3
+                                     v3.5
 ================================================================================
 fastq        : ${params.fastq}
 ref          : ${params.ref}
 spades       : ${params.spades}
 executor     : ${params.executor}
-trimming     : ${params.notrim}
+trimming     : ${params.notrim"}
 ================================================================================
 """
 
@@ -63,7 +62,6 @@ process FASTP {
     path "${id}.fastp.html", emit: html
 
     script:
-
     """
     fastp \
       --in1 ${forward} \
@@ -75,6 +73,24 @@ process FASTP {
       --length_required 36 \
       --json ${id}.fastp.json \
       --html ${id}.fastp.html
+    """
+}
+
+// Renames raw reads if trimming is skipped so assembly script can find them
+process RENAME_READS {
+    label "rename"
+    tag "$id"
+
+    input:
+    tuple val(id), path(r1), path(r2)
+
+    output:
+    tuple val(id), path("${id}_1.fq.gz"), path("${id}_2.fq.gz"), emit: renamed_reads
+
+    script:
+    """
+    ln -s ${r1} ${id}_1.fq.gz
+    ln -s ${r2} ${id}_2.fq.gz
     """
 }
 
@@ -119,7 +135,7 @@ process GENERATE_SUMMARY {
     publishDir "./Outputs/", mode: 'copy'
 
     input:
-    path assemblies // This receives a list of all files due to .collect()
+    path assemblies
 
     output:
     path "assembly_stats.csv"
@@ -130,7 +146,6 @@ process GENERATE_SUMMARY {
     import sys
     import os
 
-    # Function to calculate N50
     def calculate_n50(lengths):
         sorted_len = sorted(lengths, reverse=True)
         total_len = sum(lengths)
@@ -146,30 +161,25 @@ process GENERATE_SUMMARY {
     with open("assembly_stats.csv", "w") as out:
         out.write("Sample,Num_Contigs,Total_Size,Max_Contig,N50\\n")
 
-        # Nextflow stages all input files in the current directory
-        # We iterate over the file names provided by Nextflow
-        # 'assemblies' is a space-separated string of filenames in the bash context,
-        # but in python we can grab them from glob or if passed as args.
-        # Easier way in NF script block: pass them as args or just iterate current dir.
-
-        # We will iterate through the files provided in input channel
         input_files = "${assemblies}".split()
 
         for fpath in input_files:
-            # Clean sample name
             sample = os.path.basename(fpath).replace('_final.fasta', '')
 
             lengths = []
-            with open(fpath, 'r') as fasta:
-                seq_len = 0
-                for line in fasta:
-                    line = line.strip()
-                    if line.startswith(">"):
-                        if seq_len > 0: lengths.append(seq_len)
-                        seq_len = 0
-                    else:
-                        seq_len += len(line)
-                if seq_len > 0: lengths.append(seq_len) # add last contig
+            try:
+                with open(fpath, 'r') as fasta:
+                    seq_len = 0
+                    for line in fasta:
+                        line = line.strip()
+                        if line.startswith(">"):
+                            if seq_len > 0: lengths.append(seq_len)
+                            seq_len = 0
+                        else:
+                            seq_len += len(line)
+                    if seq_len > 0: lengths.append(seq_len)
+            except IOError:
+                continue
 
             if not lengths:
                 out.write(f"{sample},0,0,0,0\\n")
@@ -191,19 +201,20 @@ process GENERATE_SUMMARY {
 */
 
 workflow {
-    // 1. Validate inputs
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
-    // 2. Logic to Handle Trimming
-    if (!params.notrim) {
-        assembly_input_ch = reads_ch
+    // Logic to Handle Trimming vs Renaming
+    if (params.notrim) {
+        // Skip trimming, rename files via symlink
+        RENAME_READS(reads_ch)
+        assembly_input_ch = RENAME_READS.out.renamed_reads
     } else {
+        // Run FastP
         FASTP(reads_ch)
         assembly_input_ch = FASTP.out.trimmed_reads
     }
 
-    // 3. Conditional Logic based on Reference existence
     if (params.ref) {
         ref_file = file(params.ref)
         if( !ref_file.exists() ) { error "Reference file not found: ${params.ref}" }
@@ -215,19 +226,13 @@ workflow {
             ref_file,
             INDEX_REFERENCE.out.abacas_ref
         )
-
-        // Capture the output channel
         final_assemblies_ch = ASSEMBLY_WITH_REF.out.assembly
 
     } else {
         ASSEMBLY_NO_REF(assembly_input_ch)
-
-        // Capture the output channel
         final_assemblies_ch = ASSEMBLY_NO_REF.out.assembly
     }
 
-    // 4. Summary Step
-    // We Map to extract only the file path (dropping the ID), then Collect all into a list
     GENERATE_SUMMARY(
         final_assemblies_ch.map{ it[1] }.collect()
     )

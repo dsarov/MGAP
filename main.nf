@@ -4,14 +4,18 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.5 (DSL2)
- * Description       Microbial Genome Assembly Pipeline
+ * Version           v3.7 (DSL2)
+ * Description       Microbial Genome Assembly Pipeline (with Contamination Screening)
  */
+
+// Default parameter values
+params.kraken_db = null
+params.fcs_gx_db = null
 
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.5
+                                     v3.7
 ================================================================================
 fastq             : ${params.fastq}
 ref               : ${params.ref}
@@ -19,6 +23,8 @@ spades            : ${params.spades}
 megahit           : ${!params.spades}
 executor          : ${params.executor}
 skip trimming     : ${params.notrim}
+kraken2 db        : ${params.kraken_db}
+fcs-gx db         : ${params.fcs_gx_db}
 ================================================================================
 """
 
@@ -28,31 +34,10 @@ skip trimming     : ${params.notrim}
 ======================================================================
 */
 
-process INDEX_REFERENCE {
-    label "index"
-
-    input:
-    path ref
-
-    output:
-    path "ref.ABACAS", emit: abacas_ref
-
-    script:
-    """
-    contig_count=\$(grep -c '>' ${ref})
-    echo -e "Joining contigs for ABACAS\n"
-    if [ \${contig_count} == 1 ]; then
-        cp ${ref} ref.ABACAS
-    else
-        perl ${projectDir}/bin/joinMultifasta.pl ${ref} ref.ABACAS
-    fi
-    """
-}
-
 process FASTP {
     label "fastp"
     tag "$id"
-    publishDir "./Outputs/QC", mode: 'copy', pattern: "*.html"
+    publishDir "./Outputs/QC/Fastp", mode: 'copy', pattern: "*.html"
 
     input:
     tuple val(id), path(forward), path(reverse)
@@ -95,29 +80,53 @@ process RENAME_READS {
     """
 }
 
+process KRAKEN2 {
+    label "kraken"
+    tag "$id"
+    publishDir "./Outputs/QC/Kraken2", mode: 'copy'
+
+    input:
+    tuple val(id), path(r1), path(r2)
+    path k2_db
+
+    output:
+    path "${id}.kraken2_report.txt", emit: report
+    path "${id}.kraken2.output", emit: raw_output
+
+    script:
+    """
+    kraken2 \
+        --db ${k2_db} \
+        --threads ${task.cpus} \
+        --report ${id}.kraken2_report.txt \
+        --paired ${r1} ${r2} \
+        --output ${id}.kraken2.output
+    """
+}
+
 process ASSEMBLY_WITH_REF {
     label "assembly"
     tag "$id"
-    publishDir "./Outputs/", mode: 'copy', pattern: "*final.fasta", overwrite: true
+    publishDir "./Outputs/Assembly", mode: 'copy', pattern: "*final.fasta", overwrite: true
 
     input:
     tuple val(id), path(r1), path(r2)
     path reference
-    path abacas_ref
 
     output:
     tuple val(id), path("${id}_final.fasta"), emit: assembly
 
     script:
     """
-    bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no ${params.ref} $params.spades ${task.memory.toGiga()}
+    # Note: Passed 'reference' directly as the 4th argument (replacing abacas logic)
+    bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no ${reference} $params.spades ${task.memory.toGiga()}
     """
 }
 
 process ASSEMBLY_NO_REF {
     label "assembly"
     tag "$id"
-    publishDir "./Outputs/", mode: 'copy', pattern: "*final.fasta", overwrite: true
+    publishDir "./Outputs/Assembly", mode: 'copy', pattern: "*final.fasta", overwrite: true
 
     input:
     tuple val(id), path(r1), path(r2)
@@ -128,6 +137,33 @@ process ASSEMBLY_NO_REF {
     script:
     """
     bash ${projectDir}/bin/assemble.sh ${id} ${projectDir} $task.cpus no none $params.spades ${task.memory.toGiga()}
+    """
+}
+
+process FCS_GX {
+    label "fcs_gx"
+    tag "$id"
+    publishDir "./Outputs/QC/FCS-GX", mode: 'copy'
+
+    input:
+    tuple val(id), path(assembly)
+    path gx_db
+
+    output:
+    path "${id}.fcs_gx_report.txt", emit: report
+    path "${id}.taxonomy.rpt", emit: taxonomy
+
+    script:
+    """
+    python3 \$(which fcs.py) screen genome \
+        --fasta ${assembly} \
+        --out-dir . \
+        --gx-db ${gx_db} \
+        --tax-id 2 \
+        --cols_to_print "seq_id,start_pos,end_pos,seq_len,action,div,agg_tax_id,agg_tax_name"
+
+    mv *.fcs_gx_report.txt ${id}.fcs_gx_report.txt
+    mv *.taxonomy.rpt ${id}.taxonomy.rpt
     """
 }
 
@@ -205,36 +241,6 @@ workflow {
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
-    // Logic to Handle Trimming vs Renaming
+    // 1. Trimming / Renaming
     if (params.notrim) {
-        // Skip trimming, rename files via symlink
         RENAME_READS(reads_ch)
-        assembly_input_ch = RENAME_READS.out.renamed_reads
-    } else {
-        // Run FastP
-        FASTP(reads_ch)
-        assembly_input_ch = FASTP.out.trimmed_reads
-    }
-
-    if (params.ref) {
-        ref_file = file(params.ref)
-        if( !ref_file.exists() ) { error "Reference file not found: ${params.ref}" }
-
-        INDEX_REFERENCE(ref_file)
-
-        ASSEMBLY_WITH_REF(
-            assembly_input_ch,
-            ref_file,
-            INDEX_REFERENCE.out.abacas_ref
-        )
-        final_assemblies_ch = ASSEMBLY_WITH_REF.out.assembly
-
-    } else {
-        ASSEMBLY_NO_REF(assembly_input_ch)
-        final_assemblies_ch = ASSEMBLY_NO_REF.out.assembly
-    }
-
-    GENERATE_SUMMARY(
-        final_assemblies_ch.map{ it[1] }.collect()
-    )
-}

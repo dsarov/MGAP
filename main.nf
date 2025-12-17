@@ -244,3 +244,48 @@ workflow {
     // 1. Trimming / Renaming
     if (params.notrim) {
         RENAME_READS(reads_ch)
+        assembly_input_ch = RENAME_READS.out.renamed_reads
+    } else {
+        FASTP(reads_ch)
+        assembly_input_ch = FASTP.out.trimmed_reads
+    }
+
+    // 2. Kraken2 Contamination Check (Raw Reads)
+    if (params.kraken_db) {
+        kraken_db_file = file(params.kraken_db)
+        if( !kraken_db_file.exists() ) { error "Kraken DB not found: ${params.kraken_db}" }
+
+        KRAKEN2(assembly_input_ch, kraken_db_file)
+    }
+
+    // 3. Assembly
+    if (params.ref) {
+        ref_file = file(params.ref)
+        if( !ref_file.exists() ) { error "Reference file not found: ${params.ref}" }
+
+        // Updated: No INDEX_REFERENCE needed.
+        // We pass the ref_file directly to the assembly process.
+        ASSEMBLY_WITH_REF(
+            assembly_input_ch,
+            ref_file
+        )
+        final_assemblies_ch = ASSEMBLY_WITH_REF.out.assembly
+
+    } else {
+        ASSEMBLY_NO_REF(assembly_input_ch)
+        final_assemblies_ch = ASSEMBLY_NO_REF.out.assembly
+    }
+
+    // 4. FCS-GX Contamination Check (Assemblies)
+    if (params.fcs_gx_db) {
+        gx_db_file = file(params.fcs_gx_db)
+        if( !gx_db_file.exists() ) { error "FCS-GX DB not found: ${params.fcs_gx_db}" }
+
+        FCS_GX(final_assemblies_ch, gx_db_file)
+    }
+
+    // 5. Summary Stats
+    GENERATE_SUMMARY(
+        final_assemblies_ch.map{ it[1] }.collect()
+    )
+}

@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 
 /*
  * Pipeline          MGAP
- * Version           v3.9 (DSL2)
+ * Version           v3.10 (DSL2)
  * Description       Microbial Genome Assembly Pipeline (Kraken2 + CheckM1)
  */
 
@@ -15,7 +15,7 @@ params.checkm_data = null // Path to CheckM reference data folder
 log.info """
 ================================================================================
                                     NF-MGAP
-                                     v3.9
+                                     v3.10
 ================================================================================
 fastq             : ${params.fastq}
 ref               : ${params.ref}
@@ -52,6 +52,7 @@ process FASTP {
 }
 
 process RENAME_READS {
+    label "index"
     tag "$id"
     input:
     tuple val(id), path(r1), path(r2)
@@ -65,6 +66,7 @@ process RENAME_READS {
 }
 
 process KRAKEN2 {
+    label "kraken"
     tag "$id"
     publishDir "./Outputs/QC/Kraken2", mode: 'copy'
     input:
@@ -79,6 +81,7 @@ process KRAKEN2 {
 }
 
 process ASSEMBLY_WITH_REF {
+    label "assembly"
     tag "$id"
     publishDir "./Outputs/Assembly", mode: 'copy', pattern: "*final.fasta"
     input:
@@ -93,6 +96,7 @@ process ASSEMBLY_WITH_REF {
 }
 
 process ASSEMBLY_NO_REF {
+    label "assembly"
     tag "$id"
     publishDir "./Outputs/Assembly", mode: 'copy', pattern: "*final.fasta"
     input:

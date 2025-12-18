@@ -146,8 +146,41 @@ process GENERATE_SUMMARY {
     script:
     """
     #!/usr/bin/env python3
-    import os
-    # (Existing assembly stats logic remains here...)
+        import os
+
+        def calculate_n50(lengths):
+            sorted_len = sorted(lengths, reverse=True)
+            total_len = sum(lengths)
+            csum = 0
+            for l in sorted_len:
+                csum += l
+                if csum >= total_len / 2:
+                    return l
+            return 0
+
+        with open("assembly_stats.csv", "w") as out:
+            out.write("Sample,Num_Contigs,Total_Size,Max_Contig,N50\\n")
+            input_files = "${assemblies}".split()
+            for fpath in input_files:
+                sample = os.path.basename(fpath).replace('_final.fasta', '')
+                lengths = []
+                try:
+                    with open(fpath, 'r') as fasta:
+                        seq_len = 0
+                        for line in fasta:
+                            line = line.strip()
+                            if line.startswith(">"):
+                                if seq_len > 0: lengths.append(seq_len)
+                                seq_len = 0
+                            else:
+                                seq_len += len(line)
+                        if seq_len > 0: lengths.append(seq_len)
+                except IOError:
+                    continue
+                if not lengths:
+                    out.write(f"{sample},0,0,0,0\\n")
+                    continue
+                out.write(f"{sample},{len(lengths)},{sum(lengths)},{max(lengths)},{calculate_n50(lengths)}\\n")
     """
 }
 

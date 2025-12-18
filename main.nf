@@ -23,8 +23,8 @@ spades            : ${params.spades}
 megahit           : ${!params.spades}
 executor          : ${params.executor}
 skip trimming     : ${params.notrim}
-kraken2 db        : ${params.kraken_db}
-fcs-gx db         : ${params.fcs_gx_db}
+kraken_db        : ${params.kraken_db}
+fcs_gx_db         : ${params.fcs_gx_db}
 ================================================================================
 """
 

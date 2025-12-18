@@ -145,7 +145,7 @@ process GENERATE_SUMMARY {
     path "assembly_stats.csv"
     script:
     """
-    #!/usr/bin/env python3
+        #!/usr/bin/env python3
         import os
 
         def calculate_n50(lengths):
@@ -181,7 +181,7 @@ process GENERATE_SUMMARY {
                     out.write(f"{sample},0,0,0,0\\n")
                     continue
                 out.write(f"{sample},{len(lengths)},{sum(lengths)},{max(lengths)},{calculate_n50(lengths)}\\n")
-    """
+        """
 }
 
 /*

@@ -129,6 +129,7 @@ process CHECKM {
 
     # Run the lineage workflow
     checkm lineage_wf \
+        --reduced_tree \
         -t ${task.cpus} \
         -x fasta \
         --file ${id}_checkm_stats.txt \

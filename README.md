@@ -10,10 +10,6 @@ MGAP has a large number of dependencies that need to be installed prior to runni
 
 ```git clone https://github.com/dsarov/MGAP.git ./mgap```
 
-Add execute permissions for the tools shipped with MGAP
-
-```chmod -R +x ./mgap/*```
-
 Install the environment with Conda, although I can almost never get conda to solve environments on my system and prefer to use Mamba.
 
 ```conda env create --name mgap -f ./mgap/env.yaml```

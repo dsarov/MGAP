@@ -8,20 +8,6 @@ nextflow.enable.dsl=2
  * Description       Microbial Genome Assembly Pipeline
  */
 
-log.info """
-================================================================================
-                                    NF-MGAP
-                                     v3.5
-================================================================================
-fastq             : ${params.fastq}
-ref               : ${params.ref}
-spades            : ${params.spades}
-megahit           : ${!params.spades}
-executor          : ${params.executor}
-skip trimming     : ${params.notrim}
-================================================================================
-"""
-
 /*
 ======================================================================
     PROCESS DEFINITIONS
@@ -202,6 +188,22 @@ process GENERATE_SUMMARY {
 */
 
 workflow {
+
+
+  log.info """
+  ================================================================================
+                                      NF-MGAP
+                                       v3.6
+  ================================================================================
+  fastq             : ${params.fastq}
+  ref               : ${params.ref}
+  spades            : ${params.spades}
+  megahit           : ${!params.spades}
+  executor          : ${params.executor}
+  skip trimming     : ${params.notrim}
+  ================================================================================
+  """
+
     reads_ch = Channel.fromFilePairs("${params.fastq}", flat: true)
                       .ifEmpty { error "Cannot find read files: ${params.fastq}" }
 
